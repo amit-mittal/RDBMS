@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RDBMS.DataStructure{
-	class Field {
-
+namespace RDBMS.QueryManager
+{
+	class QueryEvaluator
+	{
+		//after evaluating the query, call optimizer to find order
 	}
 }

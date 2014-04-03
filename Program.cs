@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RDBMS.Testing;
 
 namespace RDBMS
 {
@@ -10,6 +6,13 @@ namespace RDBMS
     {
         static void Main(string[] args)
         {
+			InitTests();
         }
+
+		static void InitTests()
+		{
+			var storageManagerTest = new StorageManagerTest();
+			storageManagerTest.Init();
+		}
     }
 }

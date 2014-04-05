@@ -1,0 +1,7 @@
+c:\users\amit\documents\visual studio 2013\Projects\RDBMS\RDBMS\bin\Debug\RDBMS.exe.config
+C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\bin\Debug\RDBMS.exe
+C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\bin\Debug\RDBMS.pdb
+C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\obj\Debug\RDBMS.exe
+C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\obj\Debug\RDBMS.pdb
+C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\bin\Debug\log4net.dll
+C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\obj\Debug\RDBMS.csprojResolveAssemblyReference.cache

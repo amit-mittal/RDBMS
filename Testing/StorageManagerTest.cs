@@ -18,6 +18,7 @@ namespace RDBMS.Testing
 				Manager.CreateFile("E:\\Sample", 10);
 				Assert.IsTrue(File.Exists("E:\\Sample"));
 				Assert.AreEqual(File.ReadAllBytes("E:\\Sample").Length, 8);
+				//preferably check those written values also
 				
 				Manager.DropFile("E:\\Sample");
 				Assert.IsTrue(!File.Exists("E:\\Sample"));

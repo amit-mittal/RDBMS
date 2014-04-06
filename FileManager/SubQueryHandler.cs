@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using RDBMS.Util;
 
 namespace RDBMS.FileManager
 {
@@ -20,7 +18,16 @@ namespace RDBMS.FileManager
 
 		public void UseDatabase(String dbName)
 		{
-			DbManager = new DatabaseManager(dbName);
+			String dbPath = GetFilePath.Database(dbName);
+			if (Directory.Exists(dbPath))
+			{
+				DbManager = new DatabaseManager();
+				//do other stuff what need to be done
+			}
+			else
+			{
+				throw new Exception("Database does not exist");
+			}
 		}
 	}
 }

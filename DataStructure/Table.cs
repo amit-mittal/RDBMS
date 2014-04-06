@@ -10,7 +10,7 @@ namespace RDBMS.DataStructure
 	{
 		public String DbName;
 		public String Name;
-		public List<Column> Columns;
+		public List<Dummy> Columns;
 		//TODO: Also add keys and indices later
 
 	}

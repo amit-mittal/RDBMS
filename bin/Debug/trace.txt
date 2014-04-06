@@ -1,0 +1,16 @@
+log4net: log4net assembly [log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a]. Loaded from [C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\bin\Debug\log4net.dll]. (.NET Runtime [4.0.30319.34011] on Microsoft Windows NT 6.3.9600.0)
+log4net: defaultRepositoryType [log4net.Repository.Hierarchy.Hierarchy]
+log4net: Creating repository for assembly [RDBMS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]
+log4net: Assembly [RDBMS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null] Loaded From [C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\bin\Debug\RDBMS.exe]
+log4net: Assembly [RDBMS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null] does not have a RepositoryAttribute specified.
+log4net: Assembly [RDBMS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null] using repository [log4net-default-repository] and repository type [log4net.Repository.Hierarchy.Hierarchy]
+log4net: Creating repository [log4net-default-repository] using type [log4net.Repository.Hierarchy.Hierarchy]
+log4net: Shutdown called on Hierarchy [log4net-default-repository]
+log4net: log4net assembly [log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a]. Loaded from [C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\bin\Debug\log4net.dll]. (.NET Runtime [4.0.30319.34011] on Microsoft Windows NT 6.3.9600.0)
+log4net: defaultRepositoryType [log4net.Repository.Hierarchy.Hierarchy]
+log4net: Creating repository for assembly [RDBMS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]
+log4net: Assembly [RDBMS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null] Loaded From [C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\bin\Debug\RDBMS.exe]
+log4net: Assembly [RDBMS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null] does not have a RepositoryAttribute specified.
+log4net: Assembly [RDBMS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null] using repository [log4net-default-repository] and repository type [log4net.Repository.Hierarchy.Hierarchy]
+log4net: Creating repository [log4net-default-repository] using type [log4net.Repository.Hierarchy.Hierarchy]
+log4net: Shutdown called on Hierarchy [log4net-default-repository]

@@ -32,9 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\..\..\Desktop\log4net-1.2.13-bin-newkey\log4net.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,8 +42,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataStructure\Database.cs" />
     <Compile Include="DataStructure\Column.cs" />
+    <Compile Include="DataStructure\Condition.cs" />
+    <Compile Include="DataStructure\Database.cs" />
+    <Compile Include="DataStructure\Dummy.cs" />
     <Compile Include="DataStructure\Record.cs" />
     <Compile Include="DataStructure\Table.cs" />
     <Compile Include="FileManager\DatabaseManager.cs" />
@@ -60,8 +59,11 @@
     <Compile Include="QueryManager\QueryOptimizer.cs" />
     <Compile Include="SpaceManager\BufferManager.cs" />
     <Compile Include="SpaceManager\StorageManager.cs" />
+    <Compile Include="Testing\ConverterTest.cs" />
     <Compile Include="Testing\StorageManagerTest.cs" />
+    <Compile Include="Util\Converter.cs" />
     <Compile Include="Util\GetFilePath.cs" />
+    <Compile Include="Util\Logger.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

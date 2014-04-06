@@ -6,7 +6,7 @@ namespace RDBMS.Util
 	{
 		private const String Root = "E:\\RDBMS\\";
 
-		public static String GetDatabasePath(String dbName)
+		public static string Database(string dbName)
 		{
 			return Root + dbName;
 		}

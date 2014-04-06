@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RDBMS.DataStructure
 {
@@ -11,5 +8,11 @@ namespace RDBMS.DataStructure
 		public String Name;
 		public List<Table> Tables;
 		//TODO: Can add list of users also
+
+		public Database(String name, List<Table> tables)
+		{
+			Name = name;
+			Tables = tables;
+		}
 	}
 }

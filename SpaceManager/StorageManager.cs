@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 /**
@@ -8,104 +9,113 @@ namespace RDBMS.SpaceManager
 {
 	class StorageManager
 	{
-		private int GetRecordSize(FileStream fs)
+		/**
+		 * Record Size
+		 * End of file address
+		 * if bitmap exists or not
+		 */
+		public readonly int HeaderSize = 12;//fixed header size of each file
+		
+
+		public int GetRecordSize(Stream fs)
 		{
 			byte[] buffer;
 			buffer = new byte[sizeof(int)];
+			fs.Seek(0, SeekOrigin.Begin);
 			fs.Read(buffer, 0, sizeof(int));
 			return BitConverter.ToInt32(buffer, 0);
 		}
 
-		private int GetEndOfFile(FileStream fs)
+		public int GetEndOfFile(Stream fs)
 		{
-			int size = sizeof (int);
-			byte[] buffer;
-			buffer = new byte[size];
-			fs.Read(buffer, size, size);
+			const int size = sizeof (int);
+			byte[] buffer = new byte[size];
+			fs.Seek(size, SeekOrigin.Begin);
+			fs.Read(buffer, 0, size);
 			return BitConverter.ToInt32(buffer, 0);
 		}
-		
-		public void CreateFile(String fileName, int recordLength)
+
+		public int GetIfBitmapExists(Stream fs)
 		{
-			try
+			const int size = sizeof(int);
+			byte[] buffer = new byte[size];
+			fs.Seek(2 * size, SeekOrigin.Begin);
+			fs.Read(buffer, 0, size);
+			return BitConverter.ToInt32(buffer, 0);
+		}
+
+		public int GetSizeOfFile(Stream fs)
+		{
+			const int size = sizeof(int);
+			byte[] buffer = new byte[size];
+			fs.Seek(size, SeekOrigin.Begin);
+			fs.Read(buffer, 0, size);
+			return BitConverter.ToInt32(buffer, 0) - HeaderSize;
+		}
+		
+		public void CreateFile(string fileName, int recordLength, bool bitmap)
+		{
+			using (FileStream fs = new FileStream(fileName, FileMode.CreateNew))
 			{
-				using (FileStream fs = new FileStream(fileName, FileMode.Append))
-				{
-					byte[] recordBytes = BitConverter.GetBytes(recordLength);
-					fs.Write(recordBytes, 0, recordBytes.Length);
-					fs.Write(BitConverter.GetBytes(2*recordLength), 0, recordBytes.Length);
-					fs.Close();	
-				}
-			}
-			catch (Exception e)
-			{
-				throw e;
+				byte[] recordBytes = BitConverter.GetBytes(recordLength);
+				fs.Write(recordBytes, 0, recordBytes.Length);
+				fs.Write(BitConverter.GetBytes(3*recordBytes.Length), 0, recordBytes.Length);
+				if(bitmap)
+					fs.Write(BitConverter.GetBytes(1), 0, recordBytes.Length);
+				else
+					fs.Write(BitConverter.GetBytes(0), 0, recordBytes.Length);
+				fs.Close();	
 			}
 		}
 
 		public void DropFile(String fileName)
 		{
-			try
-			{
-				File.Delete(fileName);
-			}
-			catch (Exception e)
-			{
-				throw e;
-			}
+			File.Delete(fileName);
 		}
 
 		public void CreateFolder(String folderName)
 		{
-			try
-			{
-				Directory.CreateDirectory(folderName);
-			}
-			catch (Exception e)
-			{
-				throw e;
-			}
+			Directory.CreateDirectory(folderName);
 		}
 
 		public void DropFolder(String folderName)
 		{
-			try
-			{
-				Directory.Delete(folderName);
-			}
-			catch (Exception e)
-			{
-				throw e;
-			}
+			Directory.Delete(folderName);
 		}
 
-		public int Allocate(String fileName)
+		public int Allocate(Stream fs)
 		{
 			//reads from bitmap
 			return 1;
 		}
 
-		public void Deallocate(String fileName, int address)
+		public void Deallocate(Stream fs, List<int> address)
 		{
 			//simply add entry to bitmap
 		}
 
-		public byte[] Read(String fileName, int address)
+		public byte[] Read(Stream fs, int address, int count)
 		{
-			FileStream fs = File.OpenRead(fileName);
 			int recordSize = GetRecordSize(fs);
-			byte[] buffer = new byte[recordSize];
-			fs.Read(buffer, address, recordSize);
-			fs.Close();
+			byte[] buffer = new byte[count * recordSize];
+			fs.Seek(address, SeekOrigin.Begin);
+			fs.Read(buffer, 0, count * recordSize);
 			return buffer;
 		}
 
-		public void Write(String fileName, int address, byte[] record)
+		public void Write(Stream fs, int address, byte[] record)
 		{
-			FileStream fs = File.OpenRead(fileName);
+			fs.Seek(address, SeekOrigin.Begin);
+			fs.Write(record, 0, record.Length);
+		}
+
+		public byte[] GetCompleteFile(Stream fs)
+		{
+			int size = GetSizeOfFile(fs);
 			int recordSize = GetRecordSize(fs);
-			fs.Write(record, address, recordSize);
-			fs.Close();
+			byte[] buffer = Read(fs, HeaderSize, size / recordSize);
+
+			return buffer;
 		}
 	}
 }

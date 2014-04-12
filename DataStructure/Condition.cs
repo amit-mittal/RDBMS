@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace RDBMS.DataStructure
 {
 	class Condition
@@ -17,11 +12,11 @@ namespace RDBMS.DataStructure
 			GreaterEqual
 		}
 
-		public Dummy Attribute;
+		public Column Attribute;
 		public ConditionType Sign;
 		public int Value;//TODO think if add value or attribute
 
-		public Condition(Dummy attribute, ConditionType sign, int value)
+		public Condition(Column attribute, ConditionType sign, int value)
 		{
 			Attribute = attribute;
 			Sign = sign;

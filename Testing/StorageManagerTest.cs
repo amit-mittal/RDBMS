@@ -6,6 +6,7 @@ using RDBMS.SpaceManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RDBMS.Util;
 
+//TODO:Use Converter Class
 namespace RDBMS.Testing
 {
 	[TestClass]
@@ -13,8 +14,9 @@ namespace RDBMS.Testing
 	{
 		private static readonly StorageManager Manager = new StorageManager();
 		private Logger _logger;
-		private const String SampleFile = "E:\\Sample";
-		private const String SampleFolder = "E:\\Sample";
+		private const String SampleFile = "E:\\Academics\\6th Sem\\CS 345 - Databases Lab\\RDBMS Development Codes\\Database Implementation (C#)\\Sample";
+		private const String SampleFile_BM = "E:\\Academics\\6th Sem\\CS 345 - Databases Lab\\RDBMS Development Codes\\Database Implementation (C#)\\Sample_BM";
+		private const String SampleFolder = "E:\\Academics\\6th Sem\\CS 345 - Databases Lab\\RDBMS Development Codes\\Database Implementation (C#)\\Sample";
 
 		[TestMethod]
 		private void TestCreateDropFile()
@@ -22,11 +24,20 @@ namespace RDBMS.Testing
 			try
 			{
 				Manager.CreateFile(SampleFile, 10, false);
+				Manager.CreateFile(SampleFile_BM, 7, true);
 				Assert.IsTrue(File.Exists(SampleFile));
+				Assert.IsTrue(File.Exists(SampleFile_BM));
+				Assert.IsTrue(File.Exists(SampleFile_BM + " - BitMap"));
 				Assert.AreEqual(File.ReadAllBytes(SampleFile).Length, Manager.HeaderSize);
-				
+				Assert.AreEqual(File.ReadAllBytes(SampleFile_BM).Length, Manager.HeaderSize);
+				Assert.AreEqual(File.ReadAllBytes(SampleFile_BM + " - BitMap").Length, Manager.HeaderSize);
+
 				Manager.DropFile(SampleFile);
+				Manager.DropFile(SampleFile_BM);
+				Manager.DropFile(SampleFile_BM + " - BitMap");
 				Assert.IsTrue(!File.Exists(SampleFile));
+				Assert.IsTrue(!File.Exists(SampleFile_BM));
+				Assert.IsTrue(!File.Exists(SampleFile_BM + " - BitMap"));
 			}
 			catch (Exception e)
 			{
@@ -112,15 +123,120 @@ namespace RDBMS.Testing
 			}
 		}
 
+		[TestMethod]
+		private void TestAllocate()
+		{
+			try
+			{
+				int address;
+				Manager.CreateFile(SampleFile, 4, false);	//Without bitmap
+				Manager.CreateFile(SampleFile_BM, 4, true);	//With bitmap
+				Stream fs = new FileStream(SampleFile, FileMode.OpenOrCreate);
+				Stream fsbm = new FileStream(SampleFile_BM, FileMode.OpenOrCreate);
+
+				//Tests for Allocate
+				Assert.AreEqual(Manager.Allocate(SampleFile, fs), Manager.GetEndOfFile(fs) - Manager.GetRecordSize(fs));
+				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), Manager.GetEndOfFile(fsbm) - Manager.GetRecordSize(fsbm));
+				using (FileStream fsBitMap = new FileStream(SampleFile_BM + " - BitMap", FileMode.Open))
+				{
+					Manager.Write(fsBitMap, Manager.HeaderSize, BitConverter.GetBytes(16));
+					Manager.SetEndOfFile(fsBitMap, Manager.HeaderSize + Manager.GetRecordSize(fsBitMap));
+				}
+				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), 16);
+				using (FileStream fsBitMap = new FileStream(SampleFile_BM + " - BitMap", FileMode.Open))
+					Assert.AreEqual(Manager.GetEndOfFile(fsBitMap), Manager.HeaderSize);
+				Manager.SetEndOfFile(fs, Manager.HeaderSize);
+				Manager.SetEndOfFile(fsbm, Manager.HeaderSize);
+				for (int i = 0; i < 5; i++)
+				{
+					address = Manager.Allocate(SampleFile_BM, fsbm);
+					Assert.AreEqual(Manager.GetEndOfFile(fsbm) - Manager.GetRecordSize(fsbm), address);
+					Manager.Write(fsbm, address, BitConverter.GetBytes(100 + i));
+				}
+				
+				fs.Close();
+				fsbm.Close();				
+			}
+
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+
+			finally 
+			{	
+				Manager.DropFile(SampleFile);
+				Manager.DropFile(SampleFile_BM);
+				Manager.DropFile(SampleFile_BM + " - BitMap");
+			}
+		}
+
+		[TestMethod]
+		private void TestDeallocate()
+		{
+			try
+			{
+				Manager.CreateFile(SampleFile, 4, false);	//Without bitmap
+				Manager.CreateFile(SampleFile_BM, 4, true);	//With bitmap
+				Stream fs = new FileStream(SampleFile, FileMode.OpenOrCreate);
+				Stream fsbm = new FileStream(SampleFile_BM, FileMode.OpenOrCreate);
+
+				for (int i = 0; i < 5; i++)
+				{
+					Manager.Write(fsbm, Manager.Allocate(SampleFile_BM, fsbm), BitConverter.GetBytes(100 + i));
+					Manager.Write(fs, Manager.Allocate(SampleFile, fs), BitConverter.GetBytes(500 + i));
+				}
+
+				//Tests for Deallocate - For files WITH bitmap
+				List<int> dealloc = new List<int>();
+				dealloc.Add(16);
+				dealloc.Add(24);
+				Manager.Deallocate(SampleFile_BM, dealloc);
+				using (FileStream fsBitMap = new FileStream(SampleFile_BM + " - BitMap", FileMode.Open))
+					Assert.AreEqual(Manager.GetEndOfFile(fsBitMap), 20);
+				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), 24);
+				using (FileStream fsBitMap = new FileStream(SampleFile_BM + " - BitMap", FileMode.Open))
+					Assert.AreEqual(Manager.GetEndOfFile(fsBitMap), 16);
+				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), 16);
+				using (FileStream fsBitMap = new FileStream(SampleFile_BM + " - BitMap", FileMode.Open))
+				{
+					Assert.AreEqual(Manager.GetEndOfFile(fsBitMap), Manager.HeaderSize);
+					Assert.IsTrue(Manager.IsFileEmpty(fsBitMap));
+				}
+				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), Manager.GetEndOfFile(fsbm) - Manager.GetRecordSize(fsbm));
+				fsbm.Close();
+
+				//Tests for Deallocate - For files WITHOUT bitmap
+				Manager.Deallocate(fs, 2);
+				Assert.AreEqual(Manager.GetEndOfFile(fs), 24);
+				Manager.Deallocate(fs, 4);
+				fs.Close();				
+			}
+
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+
+			finally
+			{
+				Manager.DropFile(SampleFile);
+				Manager.DropFile(SampleFile_BM);
+				Manager.DropFile(SampleFile_BM + " - BitMap");
+			}
+		}
+
 		public void Init()
 		{
 			_logger = new Logger("StorageManagerTest");
-			
-			TestCreateDropFile();
-			TestCreateDropFolder();
-			TestRead();
-			TestWrite();
-			
+
+			//TestCreateDropFile();
+			//TestCreateDropFolder();
+			//TestRead();
+			//TestWrite();
+			//TestAllocate();
+			TestDeallocate();
+
 			_logger.Close();
 		}
 	}

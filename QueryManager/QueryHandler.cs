@@ -15,5 +15,7 @@ namespace RDBMS.QueryManager
 
 		//Then combines all the queries and returns the result
 		//also handler error if some exception has been thrown from below classes
+
+		//always convert whole query to LOWER case
 	}
 }

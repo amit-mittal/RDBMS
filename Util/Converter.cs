@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 
 namespace RDBMS.Util
 {
+	/**
+	 * Use this class for any kind of
+	 * conversions
+	 * 
+	 * Make sure that object you are 
+	 * serializing is of fixed size
+	 * Primitive data type will be 
+	 * converted to fixed size
+	 * 
+	 * TestClass: ConverterTest.cs
+	 */
 	static class Converter
 	{
-		public static byte[] GetBytes(object obj)
+		/**
+		 * Object Conversion Methods
+		 */
+		public static byte[] ObjectToBytes(object obj)
 		{
 			MemoryStream fs = new MemoryStream();
 			BinaryFormatter formatter = new BinaryFormatter();
@@ -28,7 +43,7 @@ namespace RDBMS.Util
 
 		}
 
-		public static object FromBytes(byte[] bytearray)
+		public static object BytesToObject(byte[] bytearray)
 		{
 			BinaryFormatter formatter = new BinaryFormatter();
 			MemoryStream stream = new MemoryStream(bytearray);
@@ -42,7 +57,7 @@ namespace RDBMS.Util
 			}
 		}
 
-		public static List<object> FromBytes(byte[] bytearray, int recordLength)
+		public static List<object> BytesToObjectList(byte[] bytearray, int recordLength)
 		{
 			try
 			{
@@ -62,7 +77,21 @@ namespace RDBMS.Util
 			}
 		}
 
-		public static List<int> FromBytesParseInt(byte[] bytearray)
+		/**
+		 * Integer Conversion Methods
+		 */
+		public static byte[] IntToBytes(int value)
+		{
+			return BitConverter.GetBytes(value);
+		}
+
+		public static int BytesToInt(byte[] bytearray)
+		{
+			int record = BitConverter.ToInt32(bytearray, 0);
+			return record;
+		}
+
+		public static List<int> BytesToIntList(byte[] bytearray)
 		{
 			try
 			{
@@ -71,6 +100,89 @@ namespace RDBMS.Util
 				for (int startIndex = 0; startIndex < bytearray.Length; startIndex += recordLength)
 				{
 					list.Add(BitConverter.ToInt32(bytearray, startIndex));
+				}
+				return list;
+			}
+			catch (Exception e)
+			{
+				return null;
+			}
+		}
+
+		/**
+		 * Char array conversion methods
+		 */
+		public static byte[] CharToBytes(char[] str)
+		{
+			return Encoding.ASCII.GetBytes(str);
+		}
+
+		public static char[] BytesToChar(byte[] bytearray)
+		{
+			return Encoding.ASCII.GetChars(bytearray);
+		}
+
+		/**
+		 * String conversion methods
+		 */
+		public static byte[] StringToBytes(String str, int size = Constants.MaxStringLength)
+		{
+			byte[] bytes = new byte[size * sizeof(char)];
+			Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, str.Length * sizeof (char));
+			return bytes;
+		}
+
+		public static String BytesToString(byte[] bytearray)
+		{
+			char[] chars = new char[bytearray.Length / sizeof(char)];
+			Buffer.BlockCopy(bytearray, 0, chars, 0, bytearray.Length);
+			String s = new string(chars).Replace("\0", string.Empty);
+			return s;
+		}
+
+		public static List<String> BytesToStringList(byte[] bytearray, int recordLength = Constants.MaxStringLength)
+		{
+			try
+			{
+				int totalRecordSize = recordLength*sizeof (char);
+				List<String> list = new List<String>();
+				for (int startIndex = 0; startIndex < bytearray.Length; startIndex += totalRecordSize)
+				{
+					char[] chars = new char[recordLength];
+					Buffer.BlockCopy(bytearray, startIndex, chars, 0, totalRecordSize);
+					list.Add(new string(chars).Replace("\0", string.Empty));
+				}
+				return list;
+			}
+			catch (Exception e)
+			{
+				return null;
+			}
+		}
+
+		/**
+		 * Double Conversion methods
+		 */
+		public static byte[] DoubleToBytes(double value)
+		{
+			return BitConverter.GetBytes(value);
+		}
+		
+		public static double BytesToDouble(byte[] bytearray)
+		{
+			double record = BitConverter.ToDouble(bytearray, 0);
+			return record;
+		}
+
+		public static List<double> BytesToDoubleList(byte[] bytearray)
+		{
+			try
+			{
+				int recordLength = sizeof(double);
+				List<double> list = new List<double>();
+				for (int startIndex = 0; startIndex < bytearray.Length; startIndex += recordLength)
+				{
+					list.Add(BitConverter.ToDouble(bytearray, startIndex));
 				}
 				return list;
 			}

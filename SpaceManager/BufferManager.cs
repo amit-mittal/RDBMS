@@ -6,7 +6,7 @@ namespace RDBMS.SpaceManager
 	//not needed as of now
 	class BufferManager
 	{
-		//handles storage manager
+		//handles storage storageManager
 		//this class can bring any amount of data
 		//this keeps track of file descriptors for the file stream
 		//and returns the whole list to subquery handler

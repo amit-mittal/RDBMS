@@ -7,16 +7,22 @@ using RDBMS.Util;
 
 namespace RDBMS.FileManager
 {
+	/**
+	 * Handles queries related to the database
+	 */
 	class DatabaseManager
 	{
 		public Database db;
-		public StorageManager manager;
+		public StorageManager storageManager = new StorageManager();
 
+		/**
+		 * Not initializing db object as that will
+		 * be done after he has used "use database" query
+		 */
 		public void CreateDatabase(String dbName)
 		{
-			manager = new StorageManager();
-			db = new Database(dbName, new List<Table>());
 			String path = GetFilePath.Database(dbName);
+			String conf = GetFilePath.DatabaseConf(dbName);
 			if (Directory.Exists(path))
 			{
 				throw new Exception("Database already exists");
@@ -24,22 +30,41 @@ namespace RDBMS.FileManager
 			else
 			{
 				//create folder and conf file
-				manager.CreateFolder(path);
+				//if needed add entry to conf of database
+				storageManager.CreateFolder(path);
+				//storageManager.CreateFile(conf, Converter.CharToBytes(new char[Constants.MaxStringSize]).Length, false);
 			}
 		}
 
 		public void UseDatabase(String dbName)
 		{
-			List<Table> tables = new List<Table>();
-			manager = new StorageManager();
-			int tableSize = manager.GetRecordSize(File.OpenRead(GetFilePath.Database(dbName)));
-			byte[] tableBytes = manager.GetCompleteFile(File.OpenRead(GetFilePath.Database(dbName)));
-			List<object> objects = Converter.FromBytes(tableBytes, tableSize);
-			foreach (object obj in objects)
+			String path = GetFilePath.Database(dbName);
+			String conf = GetFilePath.DatabaseConf(dbName);
+			if (!Directory.Exists(path))
 			{
-				tables.Add((Table)obj);
+				throw new Exception("Database does not exist");
 			}
-			db = new Database(dbName, tables);
+			else
+			{
+				db = new Database(dbName);
+
+				//right now not using conf file
+				/*byte[] tableBytes = storageManager.GetCompleteFile(File.OpenRead(conf));
+				List<String> tables = Converter.BytesToStringList(tableBytes);*/
+			}
+		}
+
+		public void DropDatabase(String dbName)
+		{
+			String path = GetFilePath.Database(dbName);
+			if (!Directory.Exists(path))
+			{
+				throw new Exception("Database does not exist");
+			}
+			else
+			{
+				storageManager.DropFolder(path);
+			}
 		}
 	}
 }

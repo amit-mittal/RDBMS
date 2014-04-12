@@ -3,9 +3,13 @@ using System.IO;
 
 namespace RDBMS.Util
 {
+	/**
+	 * Logger of the project to set some
+	 * error or message
+	 */
 	class Logger
 	{
-		private const String LogFile = "E:\\Log.txt";
+		private const String LogFile = "E:\\RDBMS\\Log.txt";
 		private static String _class;
 		private static StreamWriter _sw;
 

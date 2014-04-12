@@ -60,7 +60,10 @@
     <Compile Include="SpaceManager\BufferManager.cs" />
     <Compile Include="SpaceManager\StorageManager.cs" />
     <Compile Include="Testing\ConverterTest.cs" />
+    <Compile Include="Testing\DatabaseManagerTest.cs" />
     <Compile Include="Testing\StorageManagerTest.cs" />
+    <Compile Include="Testing\TableManagerTest.cs" />
+    <Compile Include="Util\Constants.cs" />
     <Compile Include="Util\Converter.cs" />
     <Compile Include="Util\GetFilePath.cs" />
     <Compile Include="Util\Logger.cs" />

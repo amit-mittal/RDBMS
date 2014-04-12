@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RDBMS.DataStructure
 {
+	[Serializable]
 	class Record
 	{
 		public List<String> Fields;

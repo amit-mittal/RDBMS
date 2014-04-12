@@ -7,30 +7,28 @@ namespace RDBMS.DataStructure{
 		public enum DataType
 		{
 			Int,
-			Float,
+			Double,
 			Char
 		};
 
 		public DataType Type;
-		public char[] Name = new char[50];
+		public String Name;
 		public int Length;
 
 		public Column()
 		{
 		}
 
-		public Column(DataType type, char[] name, int length)
-		{
-			Type = type;
-			name.CopyTo(Name, 0);
-			Length = length;
-		}
-
 		public Column(DataType type, String name, int length)
 		{
 			Type = type;
-			name.ToCharArray().CopyTo(Name, 0);
-			Length = length;
+			Name = name;
+			if (type == DataType.Int)
+				Length = sizeof (Int32);
+			else if (type == DataType.Double)
+				Length = sizeof (Double);
+			else if (type == DataType.Char)
+				Length = length;
 		}
 
 		public override bool Equals(object obj)
@@ -38,7 +36,7 @@ namespace RDBMS.DataStructure{
 			Column col = (Column) obj;
 			if(Type != col.Type)
 				return false;
-			if(!Name.ToString().Equals(col.Name.ToString()))
+			if(!Name.Equals(col.Name))
 				return false;
 			if(Length != col.Length)
 				return false;

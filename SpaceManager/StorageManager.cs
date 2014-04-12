@@ -160,11 +160,9 @@ namespace RDBMS.SpaceManager
 			{
 				if (NewEndOfFile < HeaderSize)
 				{
-					fs.Close();
 					throw new Exception("Number of records to deallocate exceeds number of records present in file");
 				}
 			}
-
 			finally
 			{
 				SetEndOfFile(fs, NewEndOfFile);

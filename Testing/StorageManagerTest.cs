@@ -14,9 +14,9 @@ namespace RDBMS.Testing
 	{
 		private static readonly StorageManager Manager = new StorageManager();
 		private Logger _logger;
-		private const String SampleFile = "E:\\Academics\\6th Sem\\CS 345 - Databases Lab\\RDBMS Development Codes\\Database Implementation (C#)\\Sample";
-		private const String SampleFile_BM = "E:\\Academics\\6th Sem\\CS 345 - Databases Lab\\RDBMS Development Codes\\Database Implementation (C#)\\Sample_BM";
-		private const String SampleFolder = "E:\\Academics\\6th Sem\\CS 345 - Databases Lab\\RDBMS Development Codes\\Database Implementation (C#)\\Sample";
+		private const String SampleFile = "E:\\Sample";
+		private const String SampleFile_BM = "E:\\Sample_BM";
+		private const String SampleFolder = "E:\\Sample";
 
 		[TestMethod]
 		private void TestCreateDropFile()
@@ -70,7 +70,7 @@ namespace RDBMS.Testing
 				Manager.CreateFile(SampleFile, 4, false);
 				FileStream fs = File.OpenRead(SampleFile);
 				int firstVal = BitConverter.ToInt32(Manager.Read(fs, 0, 1), 0);
-				List<int> list = Converter.FromBytesParseInt(Manager.Read(fs, 4, 2));
+				List<int> list = Converter.BytesToIntList(Manager.Read(fs, 4, 2));
 				fs.Close();
 
 				Assert.AreEqual(list.Count, 2);
@@ -103,11 +103,11 @@ namespace RDBMS.Testing
 
 				//Write a data structure
 				Dummy col = new Dummy(Dummy.DataType.Int, "ColName".ToCharArray(), 10);
-				byte[] colBytes = Converter.GetBytes(col);
+				byte[] colBytes = Converter.ObjectToBytes(col);
 				Manager.CreateFile(SampleFile, colBytes.Length, false);
 				fs = new FileStream(SampleFile, FileMode.OpenOrCreate);
 				Manager.Write(fs, Manager.HeaderSize, colBytes);
-				Dummy actualObj = (Dummy)Converter.FromBytes(Manager.Read(fs, Manager.HeaderSize, 1));
+				Dummy actualObj = (Dummy)Converter.BytesToObject(Manager.Read(fs, Manager.HeaderSize, 1));
 				Assert.AreEqual(colBytes.Length, Manager.Read(fs, Manager.HeaderSize, 1).Length);
 				fs.Close();
 
@@ -193,10 +193,14 @@ namespace RDBMS.Testing
 				dealloc.Add(24);
 				Manager.Deallocate(SampleFile_BM, dealloc);
 				using (FileStream fsBitMap = new FileStream(SampleFile_BM + " - BitMap", FileMode.Open))
+				{
 					Assert.AreEqual(Manager.GetEndOfFile(fsBitMap), 20);
+				}
 				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), 24);
 				using (FileStream fsBitMap = new FileStream(SampleFile_BM + " - BitMap", FileMode.Open))
+				{
 					Assert.AreEqual(Manager.GetEndOfFile(fsBitMap), 16);
+				}
 				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), 16);
 				using (FileStream fsBitMap = new FileStream(SampleFile_BM + " - BitMap", FileMode.Open))
 				{
@@ -209,15 +213,13 @@ namespace RDBMS.Testing
 				//Tests for Deallocate - For files WITHOUT bitmap
 				Manager.Deallocate(fs, 2);
 				Assert.AreEqual(Manager.GetEndOfFile(fs), 24);
-				Manager.Deallocate(fs, 4);
-				fs.Close();				
+				Manager.Deallocate(fs, 3);
+				fs.Close();
 			}
-
 			catch (Exception e)
 			{
 				_logger.Error(e.Message);
 			}
-
 			finally
 			{
 				Manager.DropFile(SampleFile);
@@ -230,11 +232,11 @@ namespace RDBMS.Testing
 		{
 			_logger = new Logger("StorageManagerTest");
 
-			//TestCreateDropFile();
-			//TestCreateDropFolder();
-			//TestRead();
-			//TestWrite();
-			//TestAllocate();
+			TestCreateDropFile();
+			TestCreateDropFolder();
+			TestRead();
+			TestWrite();
+			TestAllocate();
 			TestDeallocate();
 
 			_logger.Close();

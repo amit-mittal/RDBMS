@@ -34,5 +34,10 @@ namespace RDBMS.Util
 		{
 			return Root + dbName + "\\" + tableName + "\\records";
 		}
+
+		public static String TableRecordsBitmap(String dbName, String tableName)
+		{
+			return Root + dbName + "\\" + tableName + "\\records - BitMap";
+		}
 	}
 }

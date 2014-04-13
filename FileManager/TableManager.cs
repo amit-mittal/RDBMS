@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using RDBMS.DataStructure;
@@ -115,9 +116,59 @@ namespace RDBMS.FileManager
 			fs.Close();
 		}
 
-		public void DeleteRecord()
+		public void UpdateRecord(Record updatedRecord, Condition condition)
 		{
 			
+		}
+
+		public void DeleteRecords(Condition condition)
+		{
+			//fetching each record from the record table and then checking for the conditions
+			
+		}
+
+		public List<Record> SelectRecords(Condition condition)
+		{
+			//initializing the variables
+			List<Record> finalList = new List<Record>();
+			Stream fs = new FileStream(GetFilePath.TableRecords(table.DbName, table.Name), FileMode.OpenOrCreate);
+			int recordSize = storageManager.GetRecordSize(fs);
+			int endOfFile = storageManager.GetEndOfFile(fs);
+
+			//getting the whole bitmap here so that we know there is no record there
+			Stream bitmapFs = new FileStream(GetFilePath.TableRecordsBitmap(table.DbName, table.Name), FileMode.OpenOrCreate);
+			List<int> bitmapList = Converter.BytesToIntList(storageManager.GetCompleteFile(bitmapFs));
+			HashSet<int> bitmapSet = new HashSet<int>(bitmapList);
+			bitmapFs.Close();
+			
+			//traversing the whole file
+			//TODO: right now reading only 1 record, change it to a constant value
+			for (int offset = storageManager.HeaderSize; offset < endOfFile; offset+=recordSize)
+			{
+				if (!bitmapSet.Contains(offset))
+				{
+					char[] recordStr = Converter.BytesToChar(storageManager.Read(fs, offset));
+					Record record = table.StringToRecord(new string(recordStr));
+					if (IsRecordValid(record, condition))
+					{
+						finalList.Add(record);
+					}
+				}
+			}
+			fs.Close();
+			return finalList;
+		}
+
+		private bool IsRecordValid(Record record, Condition condition)
+		{
+			for (int i = 0; i < record.Fields.Count; i++)
+			{
+				if (table.Columns[i].Equals(condition.Attribute))
+				{
+					
+				}
+			}
+			return true;
 		}
 	}
 }

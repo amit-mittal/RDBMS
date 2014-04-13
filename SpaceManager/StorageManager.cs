@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using RDBMS.Util;
-
 
 //TODO : Use Converter class.
+//TODO to get bitmap use get file path class
 /**
  * Interacts with the OS File System
  */
@@ -169,7 +168,7 @@ namespace RDBMS.SpaceManager
 			}
 		}
 
-		public byte[] Read(Stream fs, int address, int count)
+		public byte[] Read(Stream fs, int address, int count = 1)
 		{
 			int recordSize = GetRecordSize(fs);
 			byte[] buffer = new byte[count * recordSize];
@@ -184,6 +183,7 @@ namespace RDBMS.SpaceManager
 			fs.Write(record, 0, record.Length);
 		}
 
+		//TODO Test pending
 		public byte[] GetCompleteFile(Stream fs) 
 		{ 
 			int size = GetSizeOfFile(fs); 

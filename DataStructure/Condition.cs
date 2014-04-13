@@ -32,9 +32,10 @@ namespace RDBMS.DataStructure
 		 * true - if condition is satisfied
 		 * else false
 		 */
-		public bool CompareIntegers(int v1, int v2, ConditionType sign)
+		public bool CompareIntegers(int v1)
 		{
-			switch (sign)
+			int v2 = int.Parse(Value);
+			switch (Sign)
 			{
 				case ConditionType.Equal:
 					{
@@ -79,9 +80,10 @@ namespace RDBMS.DataStructure
 		 * true - if condition is satisfied
 		 * else false
 		 */
-		public bool CompareDoubles(double v1, double v2, ConditionType sign)
+		public bool CompareDoubles(double v1)
 		{
-			switch (sign)
+			double v2 = double.Parse(Value);
+			switch (Sign)
 			{
 				case ConditionType.Equal:
 					{
@@ -126,9 +128,10 @@ namespace RDBMS.DataStructure
 		 * true - if condition is satisfied
 		 * else false
 		 */
-		public bool CompareStrings(String s1, String s2, ConditionType sign)
+		public bool CompareStrings(String s1)
 		{
-			switch (sign)
+			String s2 = Value;
+			switch (Sign)
 			{
 				case ConditionType.Equal:
 					{

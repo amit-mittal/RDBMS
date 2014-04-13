@@ -19,7 +19,7 @@ namespace RDBMS.Testing
 			try
 			{
 				//database does not exist
-				_logger.Message("Testing TestCreateDropDatabase");
+				_logger.Message("Testing CreateDropDatabase");
 				manager.CreateDatabase(dbName);
 				Assert.IsTrue(Directory.Exists(GetFilePath.Database(dbName)));
 				//not checking conf file as that is not getting made right now
@@ -38,7 +38,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
-				_logger.Message("Testing TestUseDatabase");
+				_logger.Message("Testing UseDatabase");
 				manager.CreateDatabase(dbName);
 				Assert.IsNull(manager.db);
 				Assert.IsNotNull(manager.storageManager);

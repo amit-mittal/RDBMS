@@ -1,4 +1,5 @@
 ﻿using System;
+using RDBMS.Util;
 
 namespace RDBMS.DataStructure{
 	[Serializable]
@@ -24,9 +25,9 @@ namespace RDBMS.DataStructure{
 			Type = type;
 			Name = name;
 			if (type == DataType.Int)
-				Length = sizeof (Int32);
+				Length = Constants.IntStringLen;
 			else if (type == DataType.Double)
-				Length = sizeof (Double);
+				Length = Constants.DoubleStringLen;
 			else if (type == DataType.Char)
 				Length = length;
 		}

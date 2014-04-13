@@ -30,6 +30,7 @@ namespace RDBMS.FileManager
 		 */
 		public TableManager(String dbName, String tableName)
 		{
+			//TODO test pending
 			String path = GetFilePath.Table(dbName, tableName);
 			String conf = GetFilePath.TableConf(dbName, tableName);
 			if (!Directory.Exists(path))
@@ -76,6 +77,10 @@ namespace RDBMS.FileManager
 			}
 		}
 
+		/**
+		 * Inserts a record into the table
+		 * Those fields should be null which have not been set
+		 */
 		public void InsertRecord(Record record)
 		{
 			//checking if some error is in the field values
@@ -118,7 +123,9 @@ namespace RDBMS.FileManager
 
 		public void UpdateRecord(Record updatedRecord, Condition condition)
 		{
+			//checks for the conditions and returns a map(address => record)
 			
+			//and then an actual update function 
 		}
 
 		public void DeleteRecords(Condition condition)
@@ -127,8 +134,22 @@ namespace RDBMS.FileManager
 			
 		}
 
+		/**
+		 * @returns List<Record> 
+		 * which satisfies the given condition
+		 * 
+		 * if condition is null means select all records
+		 */
 		public List<Record> SelectRecords(Condition condition)
 		{
+			int index = -1;//means unitialized
+			if (condition != null)
+			{
+				index = table.GetColumnIndex(condition.Attribute);
+				if (index == -1)//no column matched
+					return new List<Record>();
+			}
+
 			//initializing the variables
 			List<Record> finalList = new List<Record>();
 			Stream fs = new FileStream(GetFilePath.TableRecords(table.DbName, table.Name), FileMode.OpenOrCreate);
@@ -142,14 +163,20 @@ namespace RDBMS.FileManager
 			bitmapFs.Close();
 			
 			//traversing the whole file
-			//TODO: right now reading only 1 record, change it to a constant value
+			int NumRecords = Constants.MaxSelectRecords;//TODO use this if read more than a chunk
 			for (int offset = storageManager.HeaderSize; offset < endOfFile; offset+=recordSize)
 			{
 				if (!bitmapSet.Contains(offset))
 				{
-					char[] recordStr = Converter.BytesToChar(storageManager.Read(fs, offset));
+					char[] recordStr = new char[recordSize];
+					Converter.BytesToChar(storageManager.Read(fs, offset)).CopyTo(recordStr, 0);
+
 					Record record = table.StringToRecord(new string(recordStr));
-					if (IsRecordValid(record, condition))
+					if (condition == null)
+					{
+						finalList.Add(record);
+					}
+					else if (IsRecordValid(record, condition, index))
 					{
 						finalList.Add(record);
 					}
@@ -158,17 +185,39 @@ namespace RDBMS.FileManager
 			fs.Close();
 			return finalList;
 		}
-
-		private bool IsRecordValid(Record record, Condition condition)
+		
+		/**
+		 * Tells if the record satisfies the condition or not
+		 * @param name="index" column index on which condition is applied
+		 */
+		private bool IsRecordValid(Record record, Condition condition, int index)
 		{
-			for (int i = 0; i < record.Fields.Count; i++)
+			String value = record.Fields[index];
+			if (value == null)
 			{
-				if (table.Columns[i].Equals(condition.Attribute))
-				{
-					
-				}
+				return false;
 			}
-			return true;
+				
+			if (table.Columns[index].Type == Column.DataType.Int)
+			{
+				if(value.Length == 0)
+					return false;
+				return condition.CompareIntegers(int.Parse(value));
+			}
+
+			if (table.Columns[index].Type == Column.DataType.Double)
+			{
+				if (value.Length == 0)
+					return false;
+				return condition.CompareDoubles(double.Parse(record.Fields[index]));
+			}
+
+			if (table.Columns[index].Type == Column.DataType.Char)
+			{
+				return condition.CompareStrings(record.Fields[index]);
+			}
+				
+			return false;
 		}
 	}
 }

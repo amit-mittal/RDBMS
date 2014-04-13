@@ -6,7 +6,6 @@ using RDBMS.SpaceManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RDBMS.Util;
 
-//TODO:Use Converter Class
 namespace RDBMS.Testing
 {
 	[TestClass]
@@ -23,6 +22,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
+				_logger.Message("Testing CreateDropFile");
 				Manager.CreateFile(SampleFile, 10, false);
 				Manager.CreateFile(SampleFile_BM, 7, true);
 				Assert.IsTrue(File.Exists(SampleFile));
@@ -50,6 +50,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
+				_logger.Message("Testing CreateDropFolder");
 				Manager.CreateFolder(SampleFolder);
 				Assert.IsTrue(Directory.Exists(SampleFolder));
 
@@ -67,9 +68,10 @@ namespace RDBMS.Testing
 		{
 			try
 			{
+				_logger.Message("Testing Read");
 				Manager.CreateFile(SampleFile, 4, false);
 				FileStream fs = File.OpenRead(SampleFile);
-				int firstVal = BitConverter.ToInt32(Manager.Read(fs, 0, 1), 0);
+				int firstVal = Converter.BytesToInt(Manager.Read(fs, 0));
 				List<int> list = Converter.BytesToIntList(Manager.Read(fs, 4, 2));
 				fs.Close();
 
@@ -93,11 +95,12 @@ namespace RDBMS.Testing
 		{
 			try
 			{
+				_logger.Message("Testing Write");
 				//Writing just an integer
 				Manager.CreateFile(SampleFile, 4, false);
 				Stream fs = new FileStream(SampleFile, FileMode.OpenOrCreate);
-				Manager.Write(fs, Manager.HeaderSize, BitConverter.GetBytes(100));
-				Assert.AreEqual(100, BitConverter.ToInt32(Manager.Read(fs, Manager.HeaderSize, 1), 0));
+				Manager.Write(fs, Manager.HeaderSize, Converter.IntToBytes(100));
+				Assert.AreEqual(100, Converter.BytesToInt(Manager.Read(fs, Manager.HeaderSize)));
 				fs.Close();
 				Manager.DropFile(SampleFile);
 
@@ -107,8 +110,8 @@ namespace RDBMS.Testing
 				Manager.CreateFile(SampleFile, colBytes.Length, false);
 				fs = new FileStream(SampleFile, FileMode.OpenOrCreate);
 				Manager.Write(fs, Manager.HeaderSize, colBytes);
-				Dummy actualObj = (Dummy)Converter.BytesToObject(Manager.Read(fs, Manager.HeaderSize, 1));
-				Assert.AreEqual(colBytes.Length, Manager.Read(fs, Manager.HeaderSize, 1).Length);
+				Dummy actualObj = (Dummy)Converter.BytesToObject(Manager.Read(fs, Manager.HeaderSize));
+				Assert.AreEqual(colBytes.Length, Manager.Read(fs, Manager.HeaderSize).Length);
 				fs.Close();
 
 				Assert.AreEqual(col, actualObj);
@@ -128,6 +131,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
+				_logger.Message("Testing Allocate");
 				int address;
 				Manager.CreateFile(SampleFile, 4, false);	//Without bitmap
 				Manager.CreateFile(SampleFile_BM, 4, true);	//With bitmap
@@ -135,23 +139,23 @@ namespace RDBMS.Testing
 				Stream fsbm = new FileStream(SampleFile_BM, FileMode.OpenOrCreate);
 
 				//Tests for Allocate
-				Assert.AreEqual(Manager.Allocate(SampleFile, fs), Manager.GetEndOfFile(fs) - Manager.GetRecordSize(fs));
-				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), Manager.GetEndOfFile(fsbm) - Manager.GetRecordSize(fsbm));
+				Assert.AreEqual(Manager.Allocate(SampleFile, fs), Manager.GetEndOfFile(fs));
+				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), Manager.GetEndOfFile(fsbm));
 				using (FileStream fsBitMap = new FileStream(SampleFile_BM + " - BitMap", FileMode.Open))
 				{
-					Manager.Write(fsBitMap, Manager.HeaderSize, BitConverter.GetBytes(16));
-					Manager.SetEndOfFile(fsBitMap, Manager.HeaderSize + Manager.GetRecordSize(fsBitMap));
+					Manager.Write(fsBitMap, Manager.HeaderSize, Converter.IntToBytes(16));
 				}
 				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), 16);
 				using (FileStream fsBitMap = new FileStream(SampleFile_BM + " - BitMap", FileMode.Open))
+				{
 					Assert.AreEqual(Manager.GetEndOfFile(fsBitMap), Manager.HeaderSize);
-				Manager.SetEndOfFile(fs, Manager.HeaderSize);
-				Manager.SetEndOfFile(fsbm, Manager.HeaderSize);
+				}
+
 				for (int i = 0; i < 5; i++)
 				{
 					address = Manager.Allocate(SampleFile_BM, fsbm);
-					Assert.AreEqual(Manager.GetEndOfFile(fsbm) - Manager.GetRecordSize(fsbm), address);
-					Manager.Write(fsbm, address, BitConverter.GetBytes(100 + i));
+					Assert.AreEqual(Manager.GetEndOfFile(fsbm), address);
+					Manager.Write(fsbm, address, Converter.IntToBytes(100 + i));
 				}
 				
 				fs.Close();
@@ -176,6 +180,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
+				_logger.Message("Testing Deallocate");
 				Manager.CreateFile(SampleFile, 4, false);	//Without bitmap
 				Manager.CreateFile(SampleFile_BM, 4, true);	//With bitmap
 				Stream fs = new FileStream(SampleFile, FileMode.OpenOrCreate);
@@ -183,8 +188,8 @@ namespace RDBMS.Testing
 
 				for (int i = 0; i < 5; i++)
 				{
-					Manager.Write(fsbm, Manager.Allocate(SampleFile_BM, fsbm), BitConverter.GetBytes(100 + i));
-					Manager.Write(fs, Manager.Allocate(SampleFile, fs), BitConverter.GetBytes(500 + i));
+					Manager.Write(fsbm, Manager.Allocate(SampleFile_BM, fsbm), Converter.IntToBytes(100 + i));
+					Manager.Write(fs, Manager.Allocate(SampleFile, fs), Converter.IntToBytes(500 + i));
 				}
 
 				//Tests for Deallocate - For files WITH bitmap
@@ -207,7 +212,7 @@ namespace RDBMS.Testing
 					Assert.AreEqual(Manager.GetEndOfFile(fsBitMap), Manager.HeaderSize);
 					Assert.IsTrue(Manager.IsFileEmpty(fsBitMap));
 				}
-				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), Manager.GetEndOfFile(fsbm) - Manager.GetRecordSize(fsbm));
+				Assert.AreEqual(Manager.Allocate(SampleFile_BM, fsbm), Manager.GetEndOfFile(fsbm));
 				fsbm.Close();
 
 				//Tests for Deallocate - For files WITHOUT bitmap
@@ -228,6 +233,41 @@ namespace RDBMS.Testing
 			}
 		}
 
+		[TestMethod]
+		private void TestGetCompleteFile()
+		{
+			try
+			{
+				_logger.Message("Testing GetCompleteFile");
+				Manager.CreateFile(SampleFile, 4, false);	//Without bitmap
+				Stream fs = new FileStream(SampleFile, FileMode.Open);
+
+				// Checking for an empty file
+				Assert.AreEqual(Manager.GetCompleteFile(fs).Length, 0);
+				List <int> Input = new List <int> ();
+				List<int> Output = Converter.BytesToIntList(Manager.GetCompleteFile(fs));
+				CollectionAssert.AreEquivalent(Output, Input);
+
+				// Checking after having inserted 5 elements in the file
+				for (int i = 0; i < 5; i++)
+				{
+					Input.Add(100 + i);
+					Manager.Write(fs, Manager.Allocate(SampleFile, fs), Converter.IntToBytes(Input[i]));					
+				}
+				Assert.AreEqual(Manager.GetCompleteFile(fs).Length, 20);
+				Output = Converter.BytesToIntList(Manager.GetCompleteFile(fs));
+				CollectionAssert.AreEquivalent(Output, Input);
+				fs.Close();
+			}
+			catch(Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+			finally
+			{
+				Manager.DropFile(SampleFile);
+			}
+		}
 		public void Init()
 		{
 			_logger = new Logger("StorageManagerTest");
@@ -238,6 +278,7 @@ namespace RDBMS.Testing
 			TestWrite();
 			TestAllocate();
 			TestDeallocate();
+			TestGetCompleteFile();
 
 			_logger.Close();
 		}

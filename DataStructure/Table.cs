@@ -20,6 +20,19 @@ namespace RDBMS.DataStructure
 		}
 
 		/**
+		 * Returns the index of the column in the list
+		 */
+		public int GetColumnIndex(Column col)
+		{
+			for (int i = 0; i < Columns.Count; i++)//iterating throw each column
+			{
+				if (Columns[i].Equals(col))
+					return i;
+			}
+			return -1;//if no column found
+		}
+
+		/**
 		 * Returns size of char array needed to stream the
 		 * record
 		 */
@@ -62,13 +75,27 @@ namespace RDBMS.DataStructure
 				String s = str.Substring(prev, col.Length).Replace("\0", string.Empty);
 				if (col.Type == Column.DataType.Int)
 				{
-					int v = Int32.Parse(s);
-					fields.Add(v.ToString());
+					int v;
+					if (Int32.TryParse(s, out v) == false)
+					{
+						fields.Add(null);
+					}
+					else
+					{
+						fields.Add(v.ToString());
+					}
 				}
 				else if (col.Type == Column.DataType.Double)
 				{
-					Double v = Double.Parse(s);
-					fields.Add(v.ToString());
+					double v;
+					if (double.TryParse(s, out v) == false)
+					{
+						fields.Add(null);
+					}
+					else
+					{
+						fields.Add(v.ToString());
+					}
 				}
 				else if (col.Type == Column.DataType.Char)
 				{

@@ -12,5 +12,8 @@ namespace RDBMS.Util
 		public const int MaxSelectRecords = 5;
 
 		public const double Epsilon = 0.000001;
+
+		public const int IntStringLen = 11;
+		public const int DoubleStringLen = 11;
 	}
 }

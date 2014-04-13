@@ -16,7 +16,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
-				_logger.Message("Testing TestObjectConversion");
+				_logger.Message("Testing ObjectConversion");
 				Dummy col = new Dummy(Dummy.DataType.Int, "Id".ToCharArray(), 4);
 				byte[] colBytes = Converter.ObjectToBytes(col);
 				Dummy actualCol = (Dummy)Converter.BytesToObject(colBytes);
@@ -33,7 +33,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
-				_logger.Message("Testing TestObjectConversionList");
+				_logger.Message("Testing ObjectConversionList");
 				Dummy col_1 = new Dummy(Dummy.DataType.Int, "Id", 4);
 				byte[] colBytes_1 = Converter.ObjectToBytes(col_1);
 				
@@ -60,7 +60,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
-				_logger.Message("Testing TestIntegerConversion");
+				_logger.Message("Testing IntegerConversion");
 				int v1 = 2048;
 				byte[] v1Bytes = Converter.IntToBytes(v1);
 				Assert.AreEqual(v1, Converter.BytesToInt(v1Bytes));
@@ -85,7 +85,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
-				_logger.Message("Testing TestDoubleConversion");
+				_logger.Message("Testing DoubleConversion");
 				double v1 = 20.48;
 				byte[] v1Bytes = Converter.DoubleToBytes(v1);
 				Assert.AreEqual(v1, Converter.BytesToDouble(v1Bytes));
@@ -110,7 +110,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
-				_logger.Message("Testing TestStringConversion");
+				_logger.Message("Testing StringConversion");
 				String s1 = "Hello";
 				byte[] s1Bytes = Converter.StringToBytes(s1);
 				Assert.AreEqual(s1, Converter.BytesToString(s1Bytes));
@@ -137,7 +137,7 @@ namespace RDBMS.Testing
 		{
 			try
 			{
-				_logger.Message("Testing TestCharConversion");
+				_logger.Message("Testing CharConversion");
 				char[] s1 = new char[Constants.MaxStringSize];
 				"Hello".ToCharArray().CopyTo(s1, 0);
 				byte[] s1Bytes = Converter.CharToBytes(s1);

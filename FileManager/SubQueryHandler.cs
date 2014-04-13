@@ -52,6 +52,7 @@ namespace RDBMS.FileManager
 		{
 			CheckIfDatabaseSelected();
 			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+			tableManager.CheckRecord(record);
 			tableManager.InsertRecord(record);
 		}
 

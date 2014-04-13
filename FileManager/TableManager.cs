@@ -83,36 +83,6 @@ namespace RDBMS.FileManager
 		 */
 		public void InsertRecord(Record record)
 		{
-			//checking if some error is in the field values
-			for (int i = 0; i < record.Fields.Count; i++)
-			{
-				String value = record.Fields[i];
-				if (table.Columns[i].Type == Column.DataType.Int)
-				{
-					int dummy;
-					if (value != null && int.TryParse(value, out dummy) == false)
-					{
-						throw new Exception((i+1) + " parameter expects an integer");
-					}
-				}
-				else if (table.Columns[i].Type == Column.DataType.Double)
-				{
-					double dummy;
-					if (value != null && double.TryParse(value, out dummy) == false)
-					{
-						throw new Exception((i + 1) + " parameter expects a double");
-					}
-				}
-				else if (table.Columns[i].Type == Column.DataType.Char)
-				{
-					if (value != null && value.Length>table.Columns[i].Length)
-					{
-						throw new Exception((i + 1) + " parameter has length more than alloted to it");
-					}
-				}
-			}
-
-			//inserting the record into the table
 			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
 			Stream fs = new FileStream(recordsPath, FileMode.OpenOrCreate);
 			int address = storageManager.Allocate(recordsPath, fs);
@@ -121,17 +91,31 @@ namespace RDBMS.FileManager
 			fs.Close();
 		}
 
-		public void UpdateRecord(Record updatedRecord, Condition condition)
+		/**
+		 * Gets the dictionary containing the address => updated record
+		 */
+		public void UpdateRecord(Dictionary<int, Record> updatedRecords)
 		{
-			//checks for the conditions and returns a map(address => record)
-			
-			//and then an actual update function 
+			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
+			Stream fs = new FileStream(recordsPath, FileMode.OpenOrCreate);
+			foreach (int address in updatedRecords.Keys)
+			{
+				char[] recordStream = table.RecordToCharArray(updatedRecords[address]);
+				storageManager.Write(fs, address, Converter.CharToBytes(recordStream));
+			}
+			fs.Close();
 		}
 
-		public void DeleteRecords(Condition condition)
+		/**
+		 * Gets the dictionary containing the address => to be deleted record
+		 */
+		public void DeleteRecords(Dictionary<int, Record> uselessRecords)
 		{
-			//fetching each record from the record table and then checking for the conditions
-			
+			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
+			Stream fs = new FileStream(recordsPath, FileMode.OpenOrCreate);
+			List<int> addresses = new List<int>(uselessRecords.Keys);
+			storageManager.Deallocate(recordsPath, addresses);
+			fs.Close();
 		}
 
 		/**
@@ -142,16 +126,30 @@ namespace RDBMS.FileManager
 		 */
 		public List<Record> SelectRecords(Condition condition)
 		{
+			Dictionary<int, Record> selectedRecords = GetAddressRecordDict(condition);
+			return new List<Record>(selectedRecords.Values);
+		}
+
+		/**
+		 * @returns Dictionary<key, Record>
+		 * key => address
+		 * Record => record corresponding to the address
+		 * which satisfies the given condition
+		 * 
+		 * if condition is null means select all records
+		 */
+		public Dictionary<int, Record> GetAddressRecordDict(Condition condition)
+		{
 			int index = -1;//means unitialized
 			if (condition != null)
 			{
 				index = table.GetColumnIndex(condition.Attribute);
 				if (index == -1)//no column matched
-					return new List<Record>();
+					return new Dictionary<int, Record>();
 			}
 
 			//initializing the variables
-			List<Record> finalList = new List<Record>();
+			Dictionary<int, Record> finalDict = new Dictionary<int, Record>();
 			Stream fs = new FileStream(GetFilePath.TableRecords(table.DbName, table.Name), FileMode.OpenOrCreate);
 			int recordSize = storageManager.GetRecordSize(fs);
 			int endOfFile = storageManager.GetEndOfFile(fs);
@@ -161,10 +159,10 @@ namespace RDBMS.FileManager
 			List<int> bitmapList = Converter.BytesToIntList(storageManager.GetCompleteFile(bitmapFs));
 			HashSet<int> bitmapSet = new HashSet<int>(bitmapList);
 			bitmapFs.Close();
-			
+
 			//traversing the whole file
 			int NumRecords = Constants.MaxSelectRecords;//TODO use this if read more than a chunk
-			for (int offset = storageManager.HeaderSize; offset < endOfFile; offset+=recordSize)
+			for (int offset = storageManager.HeaderSize; offset < endOfFile; offset += recordSize)
 			{
 				if (!bitmapSet.Contains(offset))
 				{
@@ -174,16 +172,16 @@ namespace RDBMS.FileManager
 					Record record = table.StringToRecord(new string(recordStr));
 					if (condition == null)
 					{
-						finalList.Add(record);
+						finalDict.Add(offset, record);
 					}
 					else if (IsRecordValid(record, condition, index))
 					{
-						finalList.Add(record);
+						finalDict.Add(offset, record);
 					}
 				}
 			}
 			fs.Close();
-			return finalList;
+			return finalDict;
 		}
 		
 		/**
@@ -218,6 +216,42 @@ namespace RDBMS.FileManager
 			}
 				
 			return false;
+		}
+
+		/**
+		 * Checks if record contains some error or not
+		 */
+		public void CheckRecord(Record record)
+		{
+			//checking if some error is in the field values
+			for (int i = 0; i < record.Fields.Count; i++)
+			{
+				String value = record.Fields[i];
+				if (table.Columns[i].Type == Column.DataType.Int)
+				{
+					int dummy;
+					if (value != null && int.TryParse(value, out dummy) == false)
+					{
+						throw new Exception((i + 1) + " parameter expects an integer");
+					}
+				}
+				else if (table.Columns[i].Type == Column.DataType.Double)
+				{
+					double dummy;
+					if (value != null && double.TryParse(value, out dummy) == false)
+					{
+						throw new Exception((i + 1) + " parameter expects a double");
+					}
+				}
+				else if (table.Columns[i].Type == Column.DataType.Char)
+				{	
+				}
+
+				if (value != null && value.Length > table.Columns[i].Length)
+				{
+					throw new Exception((i + 1) + " parameter has length more than alloted to it");
+				}
+			}
 		}
 	}
 }

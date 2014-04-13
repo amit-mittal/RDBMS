@@ -115,9 +115,6 @@ namespace RDBMS.Testing
 		{
 			try
 			{
-				/**
-				 *		-make the file having empty chunks
-				 */
 				_logger.Message("Testing SelectRecords");
 				//path to files related to table
 				String bitmapPath = GetFilePath.TableRecordsBitmap(dbName, tableName);
@@ -182,6 +179,102 @@ namespace RDBMS.Testing
 			}
 		}
 
+		[TestMethod]
+		private void TestDeleteRecords()
+		{
+			try
+			{
+				_logger.Message("Testing DeleteRecords");
+				//making the table
+				List<Column> cols = new List<Column>();
+				cols.Add(new Column(Column.DataType.Int, "Int", 100));
+				cols.Add(new Column(Column.DataType.Double, "Double", 1));
+				cols.Add(new Column(Column.DataType.Char, "String", 20));
+				manager.CreateTable(dbName, tableName, cols);
+
+				//making records to be inserted
+				List<String> l1 = new List<string>();
+				l1.Add("5");
+				l1.Add("5.1");
+				l1.Add("random1");
+				Record r1 = new Record(l1);
+
+				List<String> l2 = new List<string>();
+				l2.Add("2048000");
+				l2.Add("5.2");
+				l2.Add("random2");
+				Record r2 = new Record(l2);
+
+				manager.InsertRecord(r1);
+				manager.InsertRecord(r2);
+				
+				Dictionary<int, Record> recordsToDelete = new Dictionary<int, Record>();
+				recordsToDelete.Add(12, r1);
+				manager.DeleteRecords(recordsToDelete);
+
+				List<Record> allRecords = manager.SelectRecords(null);
+				Assert.AreEqual(1, allRecords.Count);
+				AssertRecords(r2, allRecords[0]);
+			}
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+			finally
+			{
+				manager.DropTable(dbName, tableName);
+			}
+		}
+
+		[TestMethod]
+		private void TestUpdateRecords()
+		{
+			try
+			{
+				_logger.Message("Testing UpdateRecords");
+				//making the table
+				List<Column> cols = new List<Column>();
+				cols.Add(new Column(Column.DataType.Int, "Int", 100));
+				cols.Add(new Column(Column.DataType.Double, "Double", 1));
+				cols.Add(new Column(Column.DataType.Char, "String", 20));
+				manager.CreateTable(dbName, tableName, cols);
+
+				//making records to be inserted
+				List<String> l1 = new List<string>();
+				l1.Add("5");
+				l1.Add("5.1");
+				l1.Add("random1");
+				Record r1 = new Record(l1);
+
+				List<String> l2 = new List<string>();
+				l2.Add("2048000");
+				l2.Add("5.2");
+				l2.Add("random2");
+				Record r2 = new Record(l2);
+
+				manager.InsertRecord(r1);
+				manager.InsertRecord(r2);
+
+				Dictionary<int, Record> updatedRecords = new Dictionary<int, Record>();
+				l2[2] = "string updated";
+				updatedRecords.Add(54, r2);
+				manager.UpdateRecord(updatedRecords);
+				
+				List<Record> allRecords = manager.SelectRecords(null);
+				Assert.AreEqual(2, allRecords.Count);
+				AssertRecords(r1, allRecords[0]);
+				AssertRecords(r2, allRecords[1]);
+			}
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+			finally
+			{
+				manager.DropTable(dbName, tableName);
+			}
+		}
+
 		private void AssertRecords(Record expected, Record actual)
 		{
 			Assert.AreEqual(expected.Fields.Count, actual.Fields.Count);
@@ -199,6 +292,8 @@ namespace RDBMS.Testing
 			TestCreateDropTable();
 			TestInsertRecord();
 			TestSelectRecords();
+			TestDeleteRecords();
+			TestUpdateRecords();
 			cleanUp();
 
 			_logger.Close();

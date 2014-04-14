@@ -20,8 +20,40 @@ namespace RDBMS.Util
 	 */
 	static class Converter
 	{
+		//TODO test pending of file part
 		/**
-		 * Object Conversion Methods
+		 * Object Conversion Methods in file
+		 */
+		public static void ObjectToFile(object obj, String path)
+		{
+			Stream stream = File.Open(path, FileMode.Create);
+			BinaryFormatter formatter = new BinaryFormatter();
+			formatter.Serialize(stream, obj);
+			stream.Close();
+		}
+
+		public static object FileToObject(String path)
+		{
+			try
+			{
+				Object obj;
+				Stream stream = File.Open(path, FileMode.Open);
+				BinaryFormatter formatter = new BinaryFormatter();
+				obj = formatter.Deserialize(stream);
+				stream.Close();
+
+				return obj;
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
+				return null;
+			}
+		}
+
+
+		/**
+		 * Object Conversion Methods in memory
 		 */
 		public static byte[] ObjectToBytes(object obj)
 		{
@@ -51,8 +83,9 @@ namespace RDBMS.Util
 			{
 				return formatter.Deserialize(stream);
 			}
-			catch
+			catch(Exception e)
 			{
+				Console.WriteLine(e.Message);
 				return null;
 			}
 		}

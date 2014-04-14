@@ -40,12 +40,11 @@ namespace RDBMS.FileManager
 			else
 			{
 				storageManager = new StorageManager();
-				byte[] confBytes = storageManager.GetCompleteFile(File.OpenRead(conf));
-				table = (Table)Converter.BytesToObject(confBytes);
+				table = (Table) Converter.FileToObject(conf);
 			}
 		}
 
-		public void CreateTable(String dbName, String tableName, List<Column> columns)
+		public void CreateTable(string dbName, string tableName, List<Column> columns, List<Column> indexColumns)
 		{
 			String path = GetFilePath.Table(dbName, tableName);
 			String conf = GetFilePath.TableConf(dbName, tableName);
@@ -56,9 +55,9 @@ namespace RDBMS.FileManager
 			}
 			else
 			{
-				table = new Table(dbName, tableName, columns);
+				table = new Table(dbName, tableName, columns, indexColumns);
 				storageManager.CreateFolder(path);//table folder
-				storageManager.CreateFile(conf, Converter.ObjectToBytes(table).Length, false);//schema file of table
+				Converter.ObjectToFile(table, conf);//schema file of table
 				byte[] record = Converter.CharToBytes(new char[table.GetSizeOfRecordArray()]);
 				storageManager.CreateFile(records, record.Length, true);//records file of table
 			}
@@ -77,6 +76,11 @@ namespace RDBMS.FileManager
 			}
 		}
 
+		public Table DescribeTable()
+		{
+			return table;
+		}
+
 		/**
 		 * Inserts a record into the table
 		 * Those fields should be null which have not been set
@@ -89,45 +93,6 @@ namespace RDBMS.FileManager
 			char[] recordStream = table.RecordToCharArray(record);
 			storageManager.Write(fs, address, Converter.CharToBytes(recordStream));
 			fs.Close();
-		}
-
-		/**
-		 * Gets the dictionary containing the address => updated record
-		 */
-		public void UpdateRecord(Dictionary<int, Record> updatedRecords)
-		{
-			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
-			Stream fs = new FileStream(recordsPath, FileMode.OpenOrCreate);
-			foreach (int address in updatedRecords.Keys)
-			{
-				char[] recordStream = table.RecordToCharArray(updatedRecords[address]);
-				storageManager.Write(fs, address, Converter.CharToBytes(recordStream));
-			}
-			fs.Close();
-		}
-
-		/**
-		 * Gets the dictionary containing the address => to be deleted record
-		 */
-		public void DeleteRecords(Dictionary<int, Record> uselessRecords)
-		{
-			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
-			Stream fs = new FileStream(recordsPath, FileMode.OpenOrCreate);
-			List<int> addresses = new List<int>(uselessRecords.Keys);
-			storageManager.Deallocate(recordsPath, addresses);
-			fs.Close();
-		}
-
-		/**
-		 * @returns List<Record> 
-		 * which satisfies the given condition
-		 * 
-		 * if condition is null means select all records
-		 */
-		public List<Record> SelectRecords(Condition condition)
-		{
-			Dictionary<int, Record> selectedRecords = GetAddressRecordDict(condition);
-			return new List<Record>(selectedRecords.Values);
 		}
 
 		/**
@@ -182,6 +147,45 @@ namespace RDBMS.FileManager
 			}
 			fs.Close();
 			return finalDict;
+		}
+
+		/**
+		 * Gets the dictionary containing the address => updated record
+		 */
+		public void UpdateRecord(Dictionary<int, Record> updatedRecords)
+		{
+			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
+			Stream fs = new FileStream(recordsPath, FileMode.OpenOrCreate);
+			foreach (int address in updatedRecords.Keys)
+			{
+				char[] recordStream = table.RecordToCharArray(updatedRecords[address]);
+				storageManager.Write(fs, address, Converter.CharToBytes(recordStream));
+			}
+			fs.Close();
+		}
+
+		/**
+		 * Gets the dictionary containing the address => to be deleted record
+		 */
+		public void DeleteRecords(Dictionary<int, Record> uselessRecords)
+		{
+			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
+			Stream fs = new FileStream(recordsPath, FileMode.OpenOrCreate);
+			List<int> addresses = new List<int>(uselessRecords.Keys);
+			storageManager.Deallocate(recordsPath, addresses);
+			fs.Close();
+		}
+
+		/**
+		 * @returns List<Record> 
+		 * which satisfies the given condition
+		 * 
+		 * if condition is null means select all records
+		 */
+		public List<Record> SelectRecords(Condition condition)
+		{
+			Dictionary<int, Record> selectedRecords = GetAddressRecordDict(condition);
+			return new List<Record>(selectedRecords.Values);
 		}
 		
 		/**

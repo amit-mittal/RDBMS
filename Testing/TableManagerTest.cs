@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RDBMS.DataStructure;
 using RDBMS.FileManager;
@@ -31,12 +32,48 @@ namespace RDBMS.Testing
 		}
 
 		[TestMethod]
+		private void TestConstructor()
+		{
+			try
+			{
+				_logger.Message("Testing Constructor");
+				List<Column> cols = new List<Column>();
+				cols.Add(new Column(Column.DataType.Int, "Int", 100));
+				cols.Add(new Column(Column.DataType.Double, "Double", 1));
+				cols.Add(new Column(Column.DataType.Char, "String", 20));
+
+				List<Column> indices = new List<Column>();
+				indices.Add(new Column(Column.DataType.Int, "Int", 100));
+				manager.CreateTable(dbName, tableName, cols, indices);
+
+				TableManager tm = new TableManager(dbName, tableName);
+				
+
+				/*_logger.Message(objectToSerialize.DbName);
+
+
+				/*Assert.AreEqual(dbName, tm.table.DbName);
+				Assert.AreEqual(tableName, tm.table.Name);*/
+				/*Assert.AreEqual(manager.table.IndexColumns.Count, tm.table.IndexColumns.Count);
+				Assert.AreEqual(manager.table.Columns.Count, tm.table.Columns.Count);*/
+			}
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+			/*finally
+			{
+				manager.DropTable(dbName, tableName);
+			}*/
+		}
+
+		[TestMethod]
 		private void TestCreateDropTable()
 		{
 			try
 			{
 				_logger.Message("Testing CreateDropTable");
-				manager.CreateTable(dbName, tableName, new List<Column>());
+				manager.CreateTable(dbName, tableName, new List<Column>(), new List<Column>());
 				Assert.IsTrue(Directory.Exists(GetFilePath.Table(dbName, tableName)));
 				Assert.IsTrue(File.Exists(GetFilePath.TableConf(dbName, tableName)));
 				Assert.IsTrue(File.Exists(GetFilePath.TableRecords(dbName, tableName)));
@@ -64,7 +101,7 @@ namespace RDBMS.Testing
 				cols.Add(new Column(Column.DataType.Int, "Int", 100));
 				cols.Add(new Column(Column.DataType.Double, "Double", 1));
 				cols.Add(new Column(Column.DataType.Char, "String", 20));
-				manager.CreateTable(dbName, tableName, cols);
+				manager.CreateTable(dbName, tableName, cols, new List<Column>());
 
 				//making records to be inserted
 				List<String> l1 = new List<string>();
@@ -124,7 +161,7 @@ namespace RDBMS.Testing
 				cols.Add(new Column(Column.DataType.Int, "Int", 100));
 				cols.Add(new Column(Column.DataType.Double, "Double", 1));
 				cols.Add(new Column(Column.DataType.Char, "String", 20));
-				manager.CreateTable(dbName, tableName, cols);
+				manager.CreateTable(dbName, tableName, cols, new List<Column>());
 
 				//making records to be inserted
 				List<String> l1 = new List<string>();
@@ -190,7 +227,7 @@ namespace RDBMS.Testing
 				cols.Add(new Column(Column.DataType.Int, "Int", 100));
 				cols.Add(new Column(Column.DataType.Double, "Double", 1));
 				cols.Add(new Column(Column.DataType.Char, "String", 20));
-				manager.CreateTable(dbName, tableName, cols);
+				manager.CreateTable(dbName, tableName, cols, new List<Column>());
 
 				//making records to be inserted
 				List<String> l1 = new List<string>();
@@ -237,7 +274,7 @@ namespace RDBMS.Testing
 				cols.Add(new Column(Column.DataType.Int, "Int", 100));
 				cols.Add(new Column(Column.DataType.Double, "Double", 1));
 				cols.Add(new Column(Column.DataType.Char, "String", 20));
-				manager.CreateTable(dbName, tableName, cols);
+				manager.CreateTable(dbName, tableName, cols, new List<Column>());
 
 				//making records to be inserted
 				List<String> l1 = new List<string>();
@@ -289,12 +326,13 @@ namespace RDBMS.Testing
 			_logger = new Logger("TableManagerTest");
 
 			setUp();
-			TestCreateDropTable();
+			TestConstructor();
+			/*TestCreateDropTable();
 			TestInsertRecord();
 			TestSelectRecords();
 			TestDeleteRecords();
-			TestUpdateRecords();
-			cleanUp();
+			TestUpdateRecords();*/
+			//cleanUp();
 
 			_logger.Close();
 		}

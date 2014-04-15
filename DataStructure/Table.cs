@@ -26,6 +26,35 @@ namespace RDBMS.DataStructure
 		#endregion
 
 		/**
+		 * @returns true if column of the table 
+		 * has been indexed
+		 */
+		public bool CheckIfColumnIndexed(Column column)
+		{
+			foreach (Column col in IndexColumns)
+			{
+				if (col.Equals(column))
+					return true;
+			}
+			return false;
+		}
+
+		/**
+		 * @returns true if Condition follows all the conditions
+		 * related to table
+		 */
+		public bool CheckIfConditionValid(Condition condition)
+		{
+			if(condition == null)
+				return true;
+
+			if(GetColumnIndex(condition.Attribute) == -1)
+				return false;
+
+			return condition.CheckIfCondtionValueValid();
+		}
+
+		/**
 		 * Returns the index of the column in the list
 		 */
 		public int GetColumnIndex(Column col)

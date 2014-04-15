@@ -84,6 +84,32 @@ namespace RDBMS.Testing
 		}
 
 		[TestMethod]
+		private void TestUpdateTableToFile()
+		{
+			try
+			{
+				_logger.Message("Testing UpdateTableToFile");
+				manager.CreateTable(dbName, tableName, new List<Column>(), new List<Column>());
+				manager.table.IndexColumns.Add(new Column(Column.DataType.Char, "hello", 5));
+				manager.table.Columns.Add(new Column(Column.DataType.Int, "hello", 5));
+
+				manager.UpdateTableToFile();
+
+				TableManager tm = new TableManager(dbName, tableName);
+				Assert.AreEqual(manager.table.DbName, tm.table.DbName);
+				Assert.AreEqual(manager.table.Name, tm.table.Name);
+				Assert.AreEqual(manager.table.Columns.Count, tm.table.Columns.Count);
+				Assert.AreEqual(manager.table.IndexColumns.Count, tm.table.IndexColumns.Count);
+
+				manager.DropTable(dbName, tableName);
+			}
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+		}
+
+		[TestMethod]
 		private void TestInsertRecord()
 		{
 			try
@@ -610,6 +636,7 @@ namespace RDBMS.Testing
 			setUp();
 			TestConstructor();
 			TestCreateDropTable();
+			TestUpdateTableToFile();
 			TestInsertRecord();
 			TestSelectRecords();
 			TestDeleteRecords();

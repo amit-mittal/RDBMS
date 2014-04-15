@@ -55,7 +55,7 @@ namespace RDBMS.FileManager
 		 * IMPORTANT - Presently assumed indexColumns would be empty
 		 * Index can be added on later using AddIndex
 		 */
-		public void CreateTable(string dbName, string tableName, List<Column> columns, List<Column> indexColumns)
+		public void CreateTable(string dbName, string tableName, List<Column> columns)
 		{
 			String path = GetFilePath.Table(dbName, tableName);
 			String conf = GetFilePath.TableConf(dbName, tableName);
@@ -66,7 +66,7 @@ namespace RDBMS.FileManager
 			}
 			else
 			{
-				table = new Table(dbName, tableName, columns, indexColumns);
+				table = new Table(dbName, tableName, columns, new List<Column>());
 				storageManager.CreateFolder(path);//table folder
 				Converter.ObjectToFile(table, conf);//schema file of table
 				byte[] record = Converter.CharToBytes(new char[table.GetSizeOfRecordArray()]);
@@ -98,7 +98,6 @@ namespace RDBMS.FileManager
 		 */
 		public void UpdateTableToFile()
 		{
-			//TODO test of updatetable to file pending
 			String conf = GetFilePath.TableConf(table.DbName, table.Name);
 			Converter.ObjectToFile(table, conf);
 		}
@@ -189,7 +188,6 @@ namespace RDBMS.FileManager
 		 * Inserts a record into the indices of the table
 		 * record -> to be inserted
 		 * address -> entry in the records file
-		 * TODO test pending
 		 */
 		public void InsertRecordToIndices(Record record, int address)
 		{
@@ -231,10 +229,10 @@ namespace RDBMS.FileManager
 		/**
 		 * Inserts a record into the table
 		 * Those fields should be null which have not been set
+		 * @returns Address where it is inserted
 		 */
-		public void InsertRecord(Record record)
+		public int InsertRecord(Record record)
 		{
-			//TODO insert into btree also - similarly update/delete/select
 			//Inserting entry into record file
 			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
 			Stream fs = new FileStream(recordsPath, FileMode.OpenOrCreate);
@@ -242,6 +240,8 @@ namespace RDBMS.FileManager
 			char[] recordStream = table.RecordToCharArray(record);
 			storageManager.Write(fs, address, Converter.CharToBytes(recordStream));
 			fs.Close();
+
+			return address;
 		}
 
 		#endregion
@@ -315,7 +315,6 @@ namespace RDBMS.FileManager
 		 */
 		public Dictionary<int, Record> GetAddressRecordDictOnIndex(Condition condition)
 		{
-			//todo test pending
 			//initializing the variables
 			Dictionary<int, Record> finalDict = new Dictionary<int, Record>();
 			List<int> addresses = new List<int>();
@@ -333,9 +332,6 @@ namespace RDBMS.FileManager
 			BtreeDictionary<Index<int>, int> intbptree;
 			BtreeDictionary<Index<double>, int> doublebptree;
 			BtreeDictionary<Index<String>, int> stringbptree;
-			//todo implementation of other types still left
-
-			//bug selection of null column values in some case
 
 			//traversing the whole btree
 			if (condition.Attribute.Type == Column.DataType.Int)
@@ -358,7 +354,7 @@ namespace RDBMS.FileManager
 				//initialized the selected addresses list
 				foreach (KeyValuePair<Index<int>, int> pair in range)
 				{
-					if (IsColumnValid(pair.Key.Key.ToString(), condition, index))
+					if (IsColumnValueValid(pair.Key.Key.ToString(), condition, index))
 						addresses.Add(pair.Value);
 				}
 			}
@@ -382,7 +378,7 @@ namespace RDBMS.FileManager
 				//initialized the selected addresses list
 				foreach (KeyValuePair<Index<double>, int> pair in range)
 				{
-					if (IsColumnValid(pair.Key.Key.ToString(), condition, index))
+					if (IsColumnValueValid(pair.Key.Key.ToString(), condition, index))
 						addresses.Add(pair.Value);
 				}
 			}
@@ -403,7 +399,7 @@ namespace RDBMS.FileManager
 				//initialized the selected addresses list
 				foreach (KeyValuePair<Index<String>, int> pair in range)
 				{
-					if (IsColumnValid(pair.Key.Key, condition, index))
+					if (IsColumnValueValid(pair.Key.Key, condition, index))
 						addresses.Add(pair.Value);
 				}
 			}
@@ -430,7 +426,6 @@ namespace RDBMS.FileManager
 		 */
 		public void UpdateRecordToIndices(Dictionary<int, Record> oldRecords, Dictionary<int, Record> updatedRecords)
 		{
-			//todo test of update record to indices pending
 			DeleteRecordsFromIndices(oldRecords);
 			foreach (KeyValuePair<int, Record> pair in updatedRecords)
 			{
@@ -544,7 +539,6 @@ namespace RDBMS.FileManager
 		 */
 		public List<Record> SelectRecordsOnIndex(Condition condition)
 		{
-			//todo test pending
 			Dictionary<int, Record> selectedRecords = GetAddressRecordDictOnIndex(condition);
 			return new List<Record>(selectedRecords.Values);
 		}
@@ -560,14 +554,14 @@ namespace RDBMS.FileManager
 		private bool IsRecordValid(Record record, Condition condition, int index)
 		{
 			String value = record.Fields[index];
-			return IsColumnValid(value, condition, index);
+			return IsColumnValueValid(value, condition, index);
 		}
 
 		/**
 		 * Tells if the column value satisfies the condition or not
 		 * @param name="index" column index on which condition is applied
 		 */
-		private bool IsColumnValid(String value, Condition condition, int index)
+		private bool IsColumnValueValid(String value, Condition condition, int index)
 		{
 			if (value == null)
 			{
@@ -598,6 +592,7 @@ namespace RDBMS.FileManager
 
 		/**
 		 * Checks if record contains some error or not
+		 * Thorws exception if some error found
 		 */
 		public void CheckRecord(Record record)
 		{

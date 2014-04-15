@@ -27,6 +27,34 @@ namespace RDBMS.DataStructure
 		}
 
 		/**
+		 * Checks if condition object id valid or not
+		 */
+		public bool CheckIfCondtionValueValid()
+		{
+			if (Attribute.Type == Column.DataType.Char)
+			{
+				if (Value == null)
+					return false;
+				return true;
+			}
+			if (Attribute.Type == Column.DataType.Int)
+			{
+				if (Value == null)
+					return false;
+				int dummy;
+				return int.TryParse(Value, out dummy);
+			}
+			if (Attribute.Type == Column.DataType.Double)
+			{
+				if (Value == null)
+					return false;
+				double dummy;
+				return double.TryParse(Value, out dummy);
+			}
+			return false;
+		}
+
+		/**
 		 * Compare 2 integers
 		 * @returns bool
 		 * true - if condition is satisfied

@@ -20,7 +20,6 @@ namespace RDBMS.Util
 	 */
 	static class Converter
 	{
-		//TODO test pending of file part
 		/**
 		 * Object Conversion Methods in file
 		 */

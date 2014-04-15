@@ -8,7 +8,6 @@ namespace RDBMS.DataStructure
 	class Record
 	{
 		public List<String> Fields;
-		//TODO change to char[] as want to serialize in fixed size
 
 		public Record(List<String> fields)
 		{

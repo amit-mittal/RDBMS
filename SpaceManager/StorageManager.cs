@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using RDBMS.Util;
 
-//TODO to get bitmap use get file path class
 /**
  * Interacts with the OS File System
  */

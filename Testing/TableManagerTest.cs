@@ -366,10 +366,134 @@ namespace RDBMS.Testing
 				Record r2 = new Record(l2);
 
 				List<String> l3 = new List<string>();
-				l3.Add("-409600"); l3.Add("5.3"); l3.Add("random3");
+				l3.Add("-409600"); l3.Add(null); l3.Add("random3");
 				Record r3 = new Record(l3);
 
 				manager.InsertRecord(r1);manager.InsertRecord(r2);manager.InsertRecord(r3);
+
+				manager.AddIndex(indexedColumn);
+
+				List<Record> records = manager.SelectRecordsOnIndex(new Condition(indexedColumn, Condition.ConditionType.Equal, "5"));
+				Assert.AreEqual(1, records.Count);
+				AssertRecords(r1, records[0]);
+
+				records = manager.SelectRecordsOnIndex(new Condition(indexedColumn, Condition.ConditionType.Less, "100"));
+				Assert.AreEqual(2, records.Count);
+				AssertRecords(r3, records[0]);
+				AssertRecords(r1, records[1]);
+
+				manager.AddIndex(new Column(Column.DataType.Double, "Double", 1));
+
+				records = manager.SelectRecordsOnIndex(new Condition(new Column(Column.DataType.Double, "Double", 1), Condition.ConditionType.GreaterEqual, "5.2"));
+				Assert.AreEqual(1, records.Count);
+				AssertRecords(r2, records[0]);
+
+				manager.AddIndex(new Column(Column.DataType.Char, "String", 20));
+
+				manager.AddIndex(new Column(Column.DataType.Char, "String", 20));
+				records = manager.SelectRecordsOnIndex(new Condition(new Column(Column.DataType.Char, "String", 20), Condition.ConditionType.Equal, "random2"));
+				Assert.AreEqual(1, records.Count);
+				AssertRecords(r2, records[0]);
+				
+			}
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+			finally
+			{
+				manager.DropTable(dbName, tableName);
+			}
+		}
+
+		[TestMethod]
+		private void TestInsertRecordsOnIndex()
+		{
+			try
+			{
+				_logger.Message("Testing InsertRecordsOnIndex");
+				//making the table
+				Column indexedColumn = new Column(Column.DataType.Int, "Int", 100);
+				String indexPath = GetFilePath.TableColumnIndex(dbName, tableName, indexedColumn.Name);
+
+				List<Column> cols = new List<Column>();
+				cols.Add(indexedColumn);
+				cols.Add(new Column(Column.DataType.Double, "Double", 1));
+				cols.Add(new Column(Column.DataType.Char, "String", 20));
+				manager.CreateTable(dbName, tableName, cols, new List<Column>());
+
+				//making records to be inserted
+				List<String> l1 = new List<string>();
+				l1.Add("5"); l1.Add("5.1"); l1.Add("random1");
+				Record r1 = new Record(l1);
+
+				List<String> l2 = new List<string>();
+				l2.Add("2048000"); l2.Add("5.2"); l2.Add("random2");
+				Record r2 = new Record(l2);
+
+				List<String> l3 = new List<string>();
+				l3.Add("-409600"); l3.Add("5.3"); l3.Add("random3");
+				Record r3 = new Record(l3);
+
+				manager.InsertRecord(r1); manager.InsertRecord(r2);
+
+				manager.AddIndex(indexedColumn);
+				manager.AddIndex(new Column(Column.DataType.Char, "String", 20));
+
+				List<Record> records = manager.SelectRecordsOnIndex(new Condition(indexedColumn, Condition.ConditionType.Less, "0"));
+				Assert.AreEqual(0, records.Count);
+
+				manager.InsertRecord(r3);
+				manager.InsertRecordToIndices(r3, 96);
+
+				records = manager.SelectRecordsOnIndex(new Condition(indexedColumn, Condition.ConditionType.Less, "0"));
+				Assert.AreEqual(1, records.Count);
+				AssertRecords(r3, records[0]);
+
+				records = manager.SelectRecordsOnIndex(new Condition(new Column(Column.DataType.Char, "String", 20), Condition.ConditionType.Equal, "random3"));
+				Assert.AreEqual(1, records.Count);
+				AssertRecords(r3, records[0]);
+			}
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+			finally
+			{
+				manager.DropTable(dbName, tableName);
+			}
+		}
+
+		[TestMethod]
+		private void TestDeleteRecordsOnIndex()
+		{
+			try
+			{
+				_logger.Message("Testing DeleteRecordsOnIndex");
+				//making the table
+				Column indexedColumn = new Column(Column.DataType.Int, "Int", 100);
+				String indexPath = GetFilePath.TableColumnIndex(dbName, tableName, indexedColumn.Name);
+
+				List<Column> cols = new List<Column>();
+				cols.Add(indexedColumn);
+				cols.Add(new Column(Column.DataType.Double, "Double", 1));
+				cols.Add(new Column(Column.DataType.Char, "String", 20));
+				manager.CreateTable(dbName, tableName, cols, new List<Column>());
+
+				//making records to be inserted
+				List<String> l1 = new List<string>();
+				l1.Add("5"); l1.Add("5.1"); l1.Add("random1");
+				Record r1 = new Record(l1);
+
+				List<String> l2 = new List<string>();
+				l2.Add("2048000"); l2.Add("5.2"); l2.Add("random2");
+				Record r2 = new Record(l2);
+
+				List<String> l3 = new List<string>();
+				l3.Add("-409600"); l3.Add("5.3"); l3.Add("random3");
+				Record r3 = new Record(l3);
+
+				manager.InsertRecord(r1); manager.InsertRecord(r2); manager.InsertRecord(r3);
 
 				manager.AddIndex(indexedColumn);
 
@@ -387,7 +511,78 @@ namespace RDBMS.Testing
 				AssertRecords(r1, records[0]);
 				AssertRecords(r2, records[1]);
 
-				//todo other types not tested
+				Dictionary<int, Record> dict = new Dictionary<int, Record>();
+				dict.Add(54, r2);
+				dict.Add(12, r1);
+
+				manager.DeleteRecordsFromIndices(dict);
+
+				records = manager.SelectRecordsOnIndex(new Condition(indexedColumn, Condition.ConditionType.Less, "10"));
+				Assert.AreEqual(1, records.Count);
+				AssertRecords(r3, records[0]);
+			}
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+			finally
+			{
+				manager.DropTable(dbName, tableName);
+			}
+		}
+
+		[TestMethod]
+		private void TestUpdateRecordsOnIndex()
+		{
+			try
+			{
+				_logger.Message("Testing UpdateRecordsOnIndex");
+				//making the table
+				Column indexedColumn = new Column(Column.DataType.Int, "Int", 100);
+				String indexPath = GetFilePath.TableColumnIndex(dbName, tableName, indexedColumn.Name);
+
+				List<Column> cols = new List<Column>();
+				cols.Add(indexedColumn);
+				cols.Add(new Column(Column.DataType.Double, "Double", 1));
+				cols.Add(new Column(Column.DataType.Char, "String", 20));
+				manager.CreateTable(dbName, tableName, cols, new List<Column>());
+
+				//making records to be inserted
+				List<String> l1 = new List<string>();
+				l1.Add("5"); l1.Add("5.1"); l1.Add("random1");
+				Record r1 = new Record(l1);
+
+				List<String> l2 = new List<string>();
+				l2.Add("2048000"); l2.Add("5.2"); l2.Add("random2");
+				Record r2 = new Record(l2);
+
+				List<String> l3 = new List<string>();
+				l3.Add("-409600"); l3.Add("5.3"); l3.Add("random3");
+				Record r3 = new Record(l3);
+
+				List<String> l4 = new List<string>();
+				l4.Add("2048"); l4.Add("5.2"); l4.Add("random2");
+				Record r4 = new Record(l4);
+
+				manager.InsertRecord(r1); manager.InsertRecord(r2); manager.InsertRecord(r3);
+
+				manager.AddIndex(indexedColumn);
+				manager.AddIndex(new Column(Column.DataType.Char, "String", 20));
+
+				Dictionary<int, Record> oldDict = new Dictionary<int, Record>();
+				oldDict.Add(54, r2);
+				Dictionary<int, Record> newDict = new Dictionary<int, Record>();
+				newDict.Add(54, r4);
+
+				manager.UpdateRecord(newDict);
+				manager.UpdateRecordToIndices(oldDict, newDict);
+
+				List<Record> records = manager.SelectRecordsOnIndex(new Condition(indexedColumn, Condition.ConditionType.Equal, "2048000"));
+				Assert.AreEqual(0, records.Count);
+
+				records = manager.SelectRecordsOnIndex(new Condition(new Column(Column.DataType.Char, "String", 20), Condition.ConditionType.Equal, "random2"));
+				Assert.AreEqual(1, records.Count);
+				AssertRecords(r4, records[0]);
 			}
 			catch (Exception e)
 			{
@@ -421,6 +616,9 @@ namespace RDBMS.Testing
 			TestUpdateRecords();
 			TestAddIndex();
 			TestSelectRecordsOnIndex();
+			TestInsertRecordsOnIndex();
+			TestDeleteRecordsOnIndex();
+			TestUpdateRecordsOnIndex();
 			cleanUp();
 
 			_logger.Close();

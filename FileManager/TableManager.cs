@@ -93,12 +93,23 @@ namespace RDBMS.FileManager
 		}
 
 		/**
+		 * Writes the table data structure in memory
+		 * to the conf file
+		 */
+		public void UpdateTableToFile()
+		{
+			//TODO test of updatetable to file pending
+			String conf = GetFilePath.TableConf(table.DbName, table.Name);
+			Converter.ObjectToFile(table, conf);
+		}
+
+		/**
 		 * Adding index to particular column
 		 * if some records were already there
 		 */
 		public void AddIndex(Column index)
 		{
-			//todo test pending
+			//making the index file
 			String indexFile = GetFilePath.TableColumnIndex(table.DbName, table.Name, index.Name);
 			Dictionary<int, Record> allRecords = GetAddressRecordDict(null);
 			int position = table.GetColumnIndex(index);
@@ -164,6 +175,10 @@ namespace RDBMS.FileManager
 				//writing b+tree to the file
 				Converter.ObjectToFile(stringbptree, indexFile);
 			}
+
+			//adding entry to list in table and update back to file also
+			table.IndexColumns.Add(index);
+			UpdateTableToFile();
 		}
 
 		#endregion
@@ -318,7 +333,7 @@ namespace RDBMS.FileManager
 			BtreeDictionary<Index<int>, int> intbptree;
 			BtreeDictionary<Index<double>, int> doublebptree;
 			BtreeDictionary<Index<String>, int> stringbptree;
-			//TODO implementation of other types still left
+			//todo implementation of other types still left
 
 			//bug selection of null column values in some case
 
@@ -413,10 +428,14 @@ namespace RDBMS.FileManager
 		/**
 		 * Gets the dictionary containing the address => updated record
 		 */
-		public void UpdateRecordToIndices(Dictionary<int, Record> updatedRecords)
+		public void UpdateRecordToIndices(Dictionary<int, Record> oldRecords, Dictionary<int, Record> updatedRecords)
 		{
-			//todo remove old entry and add new one
-			//todo can be simulated by delete + insert
+			//todo test of update record to indices pending
+			DeleteRecordsFromIndices(oldRecords);
+			foreach (KeyValuePair<int, Record> pair in updatedRecords)
+			{
+				InsertRecordToIndices(pair.Value, pair.Key);
+			}
 		}
 
 		/**
@@ -444,7 +463,6 @@ namespace RDBMS.FileManager
 		/**
 		 * Takes dictionary containing the address => to be deleted record
 		 * And deletes that particular column value from the index path
-		 * todo test pending
 		 */
 		public void DeleteRecordsFromIndices(Dictionary<int, Record> uselessRecords)
 		{

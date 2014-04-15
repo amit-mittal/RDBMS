@@ -11,6 +11,7 @@ namespace RDBMS.FileManager
 	 */
 	class SubQueryHandler
 	{
+		//bug make sure consisitency in null and empty string in record object
 		public DatabaseManager DbManager = null;
 		
 		//handles database storageManager and table storageManager acc 2 the task

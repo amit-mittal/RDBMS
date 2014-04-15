@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Kw.Data;
 using RDBMS.DataStructure;
 using RDBMS.SpaceManager;
 using RDBMS.Util;
@@ -30,7 +31,6 @@ namespace RDBMS.FileManager
 		 */
 		public TableManager(String dbName, String tableName)
 		{
-			//TODO test pending
 			String path = GetFilePath.Table(dbName, tableName);
 			String conf = GetFilePath.TableConf(dbName, tableName);
 			if (!Directory.Exists(path))
@@ -44,6 +44,11 @@ namespace RDBMS.FileManager
 			}
 		}
 
+		/**
+		 * Creates all the folders/files related to a new table
+		 * IMPORTANT - Presently assumed indexColumns would be empty
+		 * Index can be added on later using AddIndex
+		 */
 		public void CreateTable(string dbName, string tableName, List<Column> columns, List<Column> indexColumns)
 		{
 			String path = GetFilePath.Table(dbName, tableName);
@@ -87,6 +92,7 @@ namespace RDBMS.FileManager
 		 */
 		public void InsertRecord(Record record)
 		{
+			//TODO insert into btree also - similarly update/delete/select
 			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
 			Stream fs = new FileStream(recordsPath, FileMode.OpenOrCreate);
 			int address = storageManager.Allocate(recordsPath, fs);
@@ -102,6 +108,7 @@ namespace RDBMS.FileManager
 		 * which satisfies the given condition
 		 * 
 		 * if condition is null means select all records
+		 * Does Linear Search of all the records
 		 */
 		public Dictionary<int, Record> GetAddressRecordDict(Condition condition)
 		{
@@ -150,6 +157,80 @@ namespace RDBMS.FileManager
 		}
 
 		/**
+		 * @returns Dictionary<key, Record>
+		 * key => address
+		 * Record => record corresponding to the address
+		 * which satisfies the given condition
+		 * 
+		 * Does searching in the btree
+		 * Call this function only if that column is an index
+		 * @param name="condition" NotNullable
+		 */
+		public Dictionary<int, Record> GetAddressRecordDictOnIndex(Condition condition)
+		{
+			//todo test pending
+			//initializing the variables
+			Dictionary<int, Record> finalDict = new Dictionary<int, Record>();
+			List<int> addresses = new List<int>();
+
+			int index = -1;//means unitialized
+			if (condition != null)
+				index = table.GetColumnIndex(condition.Attribute);
+			if (index == -1 || condition == null)//not feasible columns
+				return finalDict;
+
+			String indexFile = GetFilePath.TableColumnIndex(table.DbName, table.Name, condition.Attribute.Name);
+			String recordsFile = GetFilePath.TableRecords(table.DbName, table.Name);
+
+			//getting the b+ tree into the main memory
+			BtreeDictionary<Index<int>, int> intbptree;
+			//TODO implementation of other types still left
+
+			//traversing the whole btree
+			if (condition.Attribute.Type == Column.DataType.Int)
+			{
+				//getting tree into main memory
+				intbptree = (BtreeDictionary<Index<int>, int>)Converter.FileToObject(indexFile);
+				
+				//initialized possible feasible range of the records
+				IEnumerable range;
+				if (condition.Sign == Condition.ConditionType.Equal)
+				{
+					range = intbptree.BetweenKeys(new Index<int>(int.Parse(condition.Value), int.MinValue),
+						new Index<int>(int.Parse(condition.Value), int.MaxValue));
+				}
+				else if (condition.Sign == Condition.ConditionType.Less || condition.Sign == Condition.ConditionType.LessEqual)
+				{
+					range = intbptree.BetweenKeys(new Index<int>(int.MinValue, int.MinValue),
+						new Index<int>(int.Parse(condition.Value), int.MaxValue));
+				}
+				else
+				{
+					range = intbptree.BetweenKeys(new Index<int>(int.Parse(condition.Value), int.MinValue),
+						new Index<int>(int.MaxValue, int.MaxValue));	
+				}
+
+				//initialized the selected addresses list
+				foreach (KeyValuePair<Index<int>, int> pair in range)
+				{
+					if (IsColumnValid(pair.Key.Key.ToString(), condition, index))
+						addresses.Add(pair.Value);
+				}
+
+				//getting all records corresponding to the addresses list
+				Stream fs = new FileStream(recordsFile, FileMode.OpenOrCreate);
+				foreach (int address in addresses)
+				{
+					byte[] recordsBytes = storageManager.Read(fs, address);
+					Record record = table.StringToRecord(Converter.BytesToChar(recordsBytes).ToString());
+					finalDict.Add(address, record);
+				}
+			}
+			
+			return finalDict;
+		}
+
+		/**
 		 * Gets the dictionary containing the address => updated record
 		 */
 		public void UpdateRecord(Dictionary<int, Record> updatedRecords)
@@ -187,6 +268,54 @@ namespace RDBMS.FileManager
 			Dictionary<int, Record> selectedRecords = GetAddressRecordDict(condition);
 			return new List<Record>(selectedRecords.Values);
 		}
+
+		/**
+		 * Adding index to particular column
+		 * if some records were already there
+		 */
+		public void AddIndex(Column index)
+		{
+			//todo test pending
+			String indexFile = GetFilePath.TableColumnIndex(table.DbName, table.Name, index.Name);
+			Dictionary<int, Record> allRecords = GetAddressRecordDict(null);
+			int position = table.GetColumnIndex(index);
+
+			BtreeDictionary<Index<int>, int> intbptree = new BtreeDictionary<Index<int>, int>();
+			BtreeDictionary<Index<String>, int> stringbptree = new BtreeDictionary<Index<String>, int>();
+			BtreeDictionary<Index<double>, int> doublebptree = new BtreeDictionary<Index<double>, int>();
+
+			if (index.Type == Column.DataType.Int)
+			{
+				//making a b+tree
+				foreach (KeyValuePair<int, Record> keyValuePair in allRecords)
+				{
+					String s = keyValuePair.Value.Fields[position];
+					if (s != null)
+					{
+						Index<int> idx = new Index<int>(int.Parse(s), keyValuePair.Key);
+						intbptree.Add(idx, keyValuePair.Key);
+					}
+					else
+					{
+						Index<int> idx = new Index<int>(Constants.NullAsInt, keyValuePair.Key);
+						intbptree.Add(idx, keyValuePair.Key);
+					}
+				}
+
+				//writing b+tree to the file
+				Converter.ObjectToFile(intbptree, indexFile);
+			}
+			else if (index.Type == Column.DataType.Double)
+			{
+				//TODO implementation left
+				throw new NotImplementedException("Double not implemented");
+			}
+			else if (index.Type == Column.DataType.Char)
+			{
+				//TODO implementation left
+				throw new NotImplementedException("String not implemented");
+			}
+		}
 		
 		/**
 		 * Tells if the record satisfies the condition or not
@@ -195,14 +324,23 @@ namespace RDBMS.FileManager
 		private bool IsRecordValid(Record record, Condition condition, int index)
 		{
 			String value = record.Fields[index];
+			return IsColumnValid(value, condition, index);
+		}
+
+		/**
+		 * Tells if the column value satisfies the condition or not
+		 * @param name="index" column index on which condition is applied
+		 */
+		private bool IsColumnValid(String value, Condition condition, int index)
+		{
 			if (value == null)
 			{
 				return false;
 			}
-				
+
 			if (table.Columns[index].Type == Column.DataType.Int)
 			{
-				if(value.Length == 0)
+				if (value.Length == 0)
 					return false;
 				return condition.CompareIntegers(int.Parse(value));
 			}
@@ -211,14 +349,14 @@ namespace RDBMS.FileManager
 			{
 				if (value.Length == 0)
 					return false;
-				return condition.CompareDoubles(double.Parse(record.Fields[index]));
+				return condition.CompareDoubles(double.Parse(value));
 			}
 
 			if (table.Columns[index].Type == Column.DataType.Char)
 			{
-				return condition.CompareStrings(record.Fields[index]);
+				return condition.CompareStrings(value);
 			}
-				
+
 			return false;
 		}
 

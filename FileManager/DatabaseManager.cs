@@ -66,5 +66,19 @@ namespace RDBMS.FileManager
 				storageManager.DropFolder(path);
 			}
 		}
+
+		public List<String> ShowTables()
+		{
+			String path = GetFilePath.Database(db.Name);
+			DirectoryInfo dirInfo = new DirectoryInfo(path);
+			DirectoryInfo[] subdirInfo = dirInfo.GetDirectories();
+			
+			List<String> subdirNames = new List<string>();
+			foreach (DirectoryInfo subdir in subdirInfo)
+			{
+				subdirNames.Add(subdir.Name);
+			}
+			return subdirNames;
+		}
 	}
 }

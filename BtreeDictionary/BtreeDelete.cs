@@ -3,9 +3,6 @@
 // File:    BtreeDelete.cs
 // Purpose: Define internal BtreeDictionary delete operations.
 //
-// Copyright © 2009-2012 Kasey Osborn (Kasewick@gmail.com)
-// Ms-PL - Use and redistribute freely
-//
 
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace RDBMS.Util
 {
 	/**
@@ -15,5 +17,9 @@ namespace RDBMS.Util
 
 		public const int IntStringLen = 11;
 		public const int DoubleStringLen = 11;
+
+		public const int NullAsInt = -12345678;
+		public const double NullAsDouble = -1234567.8;
+		public const String NullAsString = null;
 	}
 }

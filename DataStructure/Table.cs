@@ -10,14 +10,20 @@ namespace RDBMS.DataStructure
 		public String DbName;
 		public String Name;
 		public List<Column> Columns;
-		//TODO: Also add keys and indices later
+		public List<Column> IndexColumns;
+		//TODO: Also add primary key later
 
-		public Table(String dbName, String name, List<Column> columns)
+		#region Constructors
+		
+		public Table(String dbName, String name, List<Column> columns, List<Column> indexColumns)
 		{
 			DbName = dbName;
 			Name = name;
 			Columns = columns;
+			IndexColumns = indexColumns;
 		}
+
+		#endregion
 
 		/**
 		 * Returns the index of the column in the list
@@ -30,6 +36,15 @@ namespace RDBMS.DataStructure
 					return i;
 			}
 			return -1;//if no column found
+		}
+
+		/**
+		 * Returns the column corresponding to index
+		 * in the list
+		 */
+		public Column GetColumn(int index)
+		{
+			return Columns[index];
 		}
 
 		/**
@@ -57,6 +72,22 @@ namespace RDBMS.DataStructure
 				prev += Columns[i].Length;
 			}
 			return arr;
+		}
+
+		/**
+		 * Gets the position of the column in the 
+		 * serialized record
+		 */
+		public int GetPositionInRecord(Column column)
+		{
+			int prev = 0;
+			foreach (Column col in Columns)
+			{
+				if(column.Equals(col))
+					break;
+				prev += col.Length;
+			}
+			return prev;
 		}
 
 		/**

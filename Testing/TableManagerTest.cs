@@ -47,24 +47,19 @@ namespace RDBMS.Testing
 				manager.CreateTable(dbName, tableName, cols, indices);
 
 				TableManager tm = new TableManager(dbName, tableName);
-				
-
-				/*_logger.Message(objectToSerialize.DbName);
-
-
-				/*Assert.AreEqual(dbName, tm.table.DbName);
-				Assert.AreEqual(tableName, tm.table.Name);*/
-				/*Assert.AreEqual(manager.table.IndexColumns.Count, tm.table.IndexColumns.Count);
-				Assert.AreEqual(manager.table.Columns.Count, tm.table.Columns.Count);*/
+				Assert.AreEqual(dbName, tm.table.DbName);
+				Assert.AreEqual(tableName, tm.table.Name);
+				Assert.AreEqual(manager.table.IndexColumns.Count, tm.table.IndexColumns.Count);
+				Assert.AreEqual(manager.table.Columns.Count, tm.table.Columns.Count);
 			}
 			catch (Exception e)
 			{
 				_logger.Error(e.Message);
 			}
-			/*finally
+			finally
 			{
 				manager.DropTable(dbName, tableName);
-			}*/
+			}
 		}
 
 		[TestMethod]
@@ -327,12 +322,12 @@ namespace RDBMS.Testing
 
 			setUp();
 			TestConstructor();
-			/*TestCreateDropTable();
+			TestCreateDropTable();
 			TestInsertRecord();
 			TestSelectRecords();
 			TestDeleteRecords();
-			TestUpdateRecords();*/
-			//cleanUp();
+			TestUpdateRecords();
+			cleanUp();
 
 			_logger.Close();
 		}

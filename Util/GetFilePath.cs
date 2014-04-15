@@ -39,5 +39,10 @@ namespace RDBMS.Util
 		{
 			return Root + dbName + "\\" + tableName + "\\records - BitMap";
 		}
+
+		public static String TableColumnIndex(String dbName, String tableName, String columnName)
+		{
+			return Root + dbName + "\\" + tableName + "\\" + columnName + " -index";
+		}
 	}
 }

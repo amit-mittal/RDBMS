@@ -41,11 +41,38 @@ namespace RDBMS.FileManager
 			DbManager.CreateDatabase(dbName);
 		}
 
-		public void CreateTable(String tableName, List<Column> columns)
+		public void DropDatabase(String dbName)
+		{
+			if (DbManager == null)
+				DbManager = new DatabaseManager();
+			DbManager.DropDatabase(dbName);
+		}
+
+		public void ShowTables()
+		{
+			CheckIfDatabaseSelected();
+			DbManager.ShowTables();
+		}
+
+		public void CreateTable(String tableName, List<Column> columns, List<Column> indexColumns)
 		{
 			CheckIfDatabaseSelected();
 			TableManager tableManager = new TableManager();
-			tableManager.CreateTable(DbManager.db.Name, tableName, columns);
+			tableManager.CreateTable(DbManager.db.Name, tableName, columns, indexColumns);
+		}
+
+		public void DropTable(String tableName)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager();
+			tableManager.DropTable(DbManager.db.Name, tableName);
+		}
+
+		public Table DescribeTable(String tableName)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+			return tableManager.DescribeTable();
 		}
 
 		public void InsertRecordToTable(String tableName, Record record)

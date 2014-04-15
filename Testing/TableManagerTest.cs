@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using Kw.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RDBMS.DataStructure;
 using RDBMS.FileManager;
@@ -100,9 +101,7 @@ namespace RDBMS.Testing
 
 				//making records to be inserted
 				List<String> l1 = new List<string>();
-				l1.Add("5");
-				l1.Add("5.1");
-				l1.Add("random1");
+				l1.Add("5"); l1.Add("5.1"); l1.Add("random1");
 				Record r1 = new Record(l1);
 
 				manager.InsertRecord(r1);
@@ -115,9 +114,7 @@ namespace RDBMS.Testing
 
 				//inserting a field having null value
 				List<String> l2 = new List<string>();
-				l2.Add(null);
-				l2.Add("5.1");
-				l2.Add("random1");
+				l2.Add("2048000"); l2.Add("5.2"); l2.Add("random2");
 				Record r2 = new Record(l2);
 
 				manager.InsertRecord(r2);
@@ -160,15 +157,11 @@ namespace RDBMS.Testing
 
 				//making records to be inserted
 				List<String> l1 = new List<string>();
-				l1.Add("5");
-				l1.Add("5.1");
-				l1.Add("random1");
+				l1.Add("5"); l1.Add("5.1"); l1.Add("random1");
 				Record r1 = new Record(l1);
 
 				List<String> l2 = new List<string>();
-				l2.Add("2048000");
-				l2.Add("5.2");
-				l2.Add("random2");
+				l2.Add("2048000"); l2.Add("5.2"); l2.Add("random2");
 				Record r2 = new Record(l2);
 
 				manager.InsertRecord(r1);
@@ -190,9 +183,7 @@ namespace RDBMS.Testing
 					manager.storageManager.SetEndOfFile(fs, 16);
 				}
 				List<String> l3 = new List<string>();
-				l3.Add("-409600");
-				l3.Add("5.3");
-				l3.Add("random3");
+				l3.Add("-409600"); l3.Add("5.3"); l3.Add("random3");
 				Record r3 = new Record(l3);
 
 				manager.InsertRecord(r3);
@@ -226,15 +217,11 @@ namespace RDBMS.Testing
 
 				//making records to be inserted
 				List<String> l1 = new List<string>();
-				l1.Add("5");
-				l1.Add("5.1");
-				l1.Add("random1");
+				l1.Add("5");l1.Add("5.1");l1.Add("random1");
 				Record r1 = new Record(l1);
 
 				List<String> l2 = new List<string>();
-				l2.Add("2048000");
-				l2.Add("5.2");
-				l2.Add("random2");
+				l2.Add("2048000");l2.Add("5.2");l2.Add("random2");
 				Record r2 = new Record(l2);
 
 				manager.InsertRecord(r1);
@@ -273,15 +260,11 @@ namespace RDBMS.Testing
 
 				//making records to be inserted
 				List<String> l1 = new List<string>();
-				l1.Add("5");
-				l1.Add("5.1");
-				l1.Add("random1");
+				l1.Add("5");l1.Add("5.1");l1.Add("random1");
 				Record r1 = new Record(l1);
 
 				List<String> l2 = new List<string>();
-				l2.Add("2048000");
-				l2.Add("5.2");
-				l2.Add("random2");
+				l2.Add("2048000");l2.Add("5.2");l2.Add("random2");
 				Record r2 = new Record(l2);
 
 				manager.InsertRecord(r1);
@@ -296,6 +279,115 @@ namespace RDBMS.Testing
 				Assert.AreEqual(2, allRecords.Count);
 				AssertRecords(r1, allRecords[0]);
 				AssertRecords(r2, allRecords[1]);
+			}
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+			finally
+			{
+				manager.DropTable(dbName, tableName);
+			}
+		}
+
+		[TestMethod]
+		private void TestAddIndex()
+		{
+			try
+			{
+				_logger.Message("Testing AddIndex");
+				//making the table
+				String indexPath = GetFilePath.TableColumnIndex(dbName, tableName, "Int");
+
+				List<Column> cols = new List<Column>();
+				cols.Add(new Column(Column.DataType.Int, "Int", 100));
+				cols.Add(new Column(Column.DataType.Double, "Double", 1));
+				cols.Add(new Column(Column.DataType.Char, "String", 20));
+				manager.CreateTable(dbName, tableName, cols, new List<Column>());
+
+				//making records to be inserted
+				List<String> l1 = new List<string>();
+				l1.Add("5");l1.Add("5.1");l1.Add("random1");
+				Record r1 = new Record(l1);
+
+				List<String> l2 = new List<string>();
+				l2.Add("2048000");l2.Add("5.2");l2.Add("random2");
+				Record r2 = new Record(l2);
+
+				List<String> l3 = new List<string>();
+				l3.Add("-409600");l3.Add("5.3");l3.Add("random3");
+				Record r3 = new Record(l3);
+
+				manager.InsertRecord(r1);
+				manager.InsertRecord(r2);
+				manager.InsertRecord(r3);
+
+				manager.AddIndex(new Column(Column.DataType.Int, "Int", 100));
+
+				Assert.IsTrue(File.Exists(indexPath));
+				BtreeDictionary<Index<int>, int> btree = (BtreeDictionary<Index<int>, int>) Converter.FileToObject(indexPath);
+				Assert.AreEqual(3, btree.Count);
+				Assert.IsTrue(btree.ContainsKey(new Index<int>(2048000, 54)));
+				Assert.IsTrue(btree.ContainsValue(96));
+			}
+			catch (Exception e)
+			{
+				_logger.Error(e.Message);
+			}
+			finally
+			{
+				manager.DropTable(dbName, tableName);
+			}
+		}
+
+		[TestMethod]
+		private void TestSelectRecordsOnIndex()
+		{
+			try
+			{
+				_logger.Message("Testing SelectRecordsOnIndex");
+				//making the table
+				Column indexedColumn = new Column(Column.DataType.Int, "Int", 100);
+				String indexPath = GetFilePath.TableColumnIndex(dbName, tableName, indexedColumn.Name);
+
+				List<Column> cols = new List<Column>();
+				cols.Add(indexedColumn);
+				cols.Add(new Column(Column.DataType.Double, "Double", 1));
+				cols.Add(new Column(Column.DataType.Char, "String", 20));
+				manager.CreateTable(dbName, tableName, cols, new List<Column>());
+
+				//making records to be inserted
+				List<String> l1 = new List<string>();
+				l1.Add("5"); l1.Add("5.1"); l1.Add("random1");
+				Record r1 = new Record(l1);
+
+				List<String> l2 = new List<string>();
+				l2.Add("2048000"); l2.Add("5.2"); l2.Add("random2");
+				Record r2 = new Record(l2);
+
+				List<String> l3 = new List<string>();
+				l3.Add("-409600"); l3.Add("5.3"); l3.Add("random3");
+				Record r3 = new Record(l3);
+
+				manager.InsertRecord(r1);manager.InsertRecord(r2);manager.InsertRecord(r3);
+
+				manager.AddIndex(indexedColumn);
+
+				List<Record> records = manager.SelectRecordsOnIndex(new Condition(indexedColumn, Condition.ConditionType.Equal, "5"));
+				Assert.AreEqual(1, records.Count);
+				AssertRecords(r1, records[0]);
+
+				records = manager.SelectRecordsOnIndex(new Condition(indexedColumn, Condition.ConditionType.Less, "100"));
+				Assert.AreEqual(2, records.Count);
+				AssertRecords(r3, records[0]);
+				AssertRecords(r1, records[1]);
+
+				records = manager.SelectRecordsOnIndex(new Condition(indexedColumn, Condition.ConditionType.GreaterEqual, "5"));
+				Assert.AreEqual(2, records.Count);
+				AssertRecords(r1, records[0]);
+				AssertRecords(r2, records[1]);
+
+				//todo other types not tested
 			}
 			catch (Exception e)
 			{
@@ -327,6 +419,8 @@ namespace RDBMS.Testing
 			TestSelectRecords();
 			TestDeleteRecords();
 			TestUpdateRecords();
+			TestAddIndex();
+			TestSelectRecordsOnIndex();
 			cleanUp();
 
 			_logger.Close();

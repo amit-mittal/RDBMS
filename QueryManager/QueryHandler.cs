@@ -1,21 +1,77 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Irony.Parsing;
+using RDBMS.FileManager;
 
 namespace RDBMS.QueryManager
 {
-	class QueryHandler
+	internal class QueryHandler
 	{
-		//Gets query from Program.cs
-		//call QueryEvaluator to parse it
-		//calls subquery handler and get all the results
-		//of subqueries
+		public SubQueryHandler subQueryHandler;
+		public String query;
+		public ParseTreeNode root;
 
-		//Then combines all the queries and returns the result
-		//also handler error if some exception has been thrown from below classes
+		public QueryHandler()
+		{
+			subQueryHandler = new SubQueryHandler();
+		}
 
-		//always convert whole query to LOWER case
+		public void SetQuery(String str)
+		{
+			query = str.ToLower();
+			Init();
+		}
+
+		private void Init()
+		{
+			QueryParser parser = new QueryParser(query);
+			root = parser.GetRoot();
+
+			try
+			{
+				if (root != null)
+				{
+					Console.WriteLine("Valid Query");
+					parser.PrintNode(root, 0);
+					Console.WriteLine("====================");
+
+					if (root.ChildNodes[0].Term.ToString() == "createDatabaseStmt")
+					{
+						CreateDatabase();
+						Console.WriteLine("Database Created");
+					}
+					else if (root.ChildNodes[0].Term.ToString() == "createDatabaseStmt")
+					{
+						CreateDatabase();
+						Console.WriteLine("Database Created");
+					}
+					else if (root.ChildNodes[0].Term.ToString() == "createDatabaseStmt")
+					{
+						CreateDatabase();
+						Console.WriteLine("Database Created");
+					}
+					else
+					{
+						Console.WriteLine("Some error in alloting query");
+					}
+				}
+				else //invalid query
+				{
+					Console.WriteLine("Invalid Query");
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
+			}
+		}
+
+		private void CreateDatabase()
+		{
+			String dbName = root
+				.ChildNodes[0].ChildNodes[2].ChildNodes[0]
+				.Token.Value.ToString();
+			
+			subQueryHandler.CreateDatabase(dbName);
+		}
 	}
 }

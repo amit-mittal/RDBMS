@@ -2,7 +2,7 @@
 
 namespace RDBMS.QueryManager
 {
-	class QueryOptimizer
+	internal class QueryOptimizer
 	{
 	}
 }

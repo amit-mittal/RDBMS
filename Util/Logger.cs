@@ -7,7 +7,8 @@ namespace RDBMS.Util
 	 * Logger of the project to set some
 	 * error or message
 	 */
-	class Logger
+
+	internal class Logger
 	{
 		private const String LogFile = "E:\\RDBMS\\Log.txt";
 		private static String _class;

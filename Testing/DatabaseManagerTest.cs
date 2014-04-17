@@ -8,7 +8,7 @@ using RDBMS.Util;
 namespace RDBMS.Testing
 {
 	[TestClass]
-	class DatabaseManagerTest
+	internal class DatabaseManagerTest
 	{
 		private Logger _logger;
 		private static DatabaseManager manager = new DatabaseManager();
@@ -95,7 +95,7 @@ namespace RDBMS.Testing
 			TestCreateDropDatabase();
 			TestUseDatabase();
 			TestShowTables();
-			
+
 			_logger.Close();
 		}
 	}

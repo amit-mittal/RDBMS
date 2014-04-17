@@ -5,7 +5,7 @@ using RDBMS.Util;
 namespace RDBMS.DataStructure
 {
 	[Serializable]
-	class Record
+	internal class Record
 	{
 		public List<String> Fields;
 

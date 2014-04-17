@@ -9,7 +9,7 @@ using RDBMS.Util;
 namespace RDBMS.Testing
 {
 	[TestClass]
-	class StorageManagerTest
+	internal class StorageManagerTest
 	{
 		private static readonly StorageManager Manager = new StorageManager();
 		private Logger _logger;
@@ -110,7 +110,7 @@ namespace RDBMS.Testing
 				Manager.CreateFile(SampleFile, colBytes.Length, false);
 				fs = new FileStream(SampleFile, FileMode.OpenOrCreate);
 				Manager.Write(fs, Manager.HeaderSize, colBytes);
-				Dummy actualObj = (Dummy)Converter.BytesToObject(Manager.Read(fs, Manager.HeaderSize));
+				Dummy actualObj = (Dummy) Converter.BytesToObject(Manager.Read(fs, Manager.HeaderSize));
 				Assert.AreEqual(colBytes.Length, Manager.Read(fs, Manager.HeaderSize).Length);
 				fs.Close();
 
@@ -133,8 +133,8 @@ namespace RDBMS.Testing
 			{
 				_logger.Message("Testing Allocate");
 				int address;
-				Manager.CreateFile(SampleFile, 4, false);	//Without bitmap
-				Manager.CreateFile(SampleFile_BM, 4, true);	//With bitmap
+				Manager.CreateFile(SampleFile, 4, false); //Without bitmap
+				Manager.CreateFile(SampleFile_BM, 4, true); //With bitmap
 				Stream fs = new FileStream(SampleFile, FileMode.OpenOrCreate);
 				Stream fsbm = new FileStream(SampleFile_BM, FileMode.OpenOrCreate);
 
@@ -157,9 +157,9 @@ namespace RDBMS.Testing
 					Assert.AreEqual(Manager.GetEndOfFile(fsbm), address);
 					Manager.Write(fsbm, address, Converter.IntToBytes(100 + i));
 				}
-				
+
 				fs.Close();
-				fsbm.Close();				
+				fsbm.Close();
 			}
 
 			catch (Exception e)
@@ -167,8 +167,8 @@ namespace RDBMS.Testing
 				_logger.Error(e.Message);
 			}
 
-			finally 
-			{	
+			finally
+			{
 				Manager.DropFile(SampleFile);
 				Manager.DropFile(SampleFile_BM);
 				Manager.DropFile(SampleFile_BM + " - BitMap");
@@ -181,8 +181,8 @@ namespace RDBMS.Testing
 			try
 			{
 				_logger.Message("Testing Deallocate");
-				Manager.CreateFile(SampleFile, 4, false);	//Without bitmap
-				Manager.CreateFile(SampleFile_BM, 4, true);	//With bitmap
+				Manager.CreateFile(SampleFile, 4, false); //Without bitmap
+				Manager.CreateFile(SampleFile_BM, 4, true); //With bitmap
 				Stream fs = new FileStream(SampleFile, FileMode.OpenOrCreate);
 				Stream fsbm = new FileStream(SampleFile_BM, FileMode.OpenOrCreate);
 
@@ -239,12 +239,12 @@ namespace RDBMS.Testing
 			try
 			{
 				_logger.Message("Testing GetCompleteFile");
-				Manager.CreateFile(SampleFile, 4, false);	//Without bitmap
+				Manager.CreateFile(SampleFile, 4, false); //Without bitmap
 				Stream fs = new FileStream(SampleFile, FileMode.Open);
 
 				// Checking for an empty file
 				Assert.AreEqual(Manager.GetCompleteFile(fs).Length, 0);
-				List <int> Input = new List <int> ();
+				List<int> Input = new List<int>();
 				List<int> Output = Converter.BytesToIntList(Manager.GetCompleteFile(fs));
 				CollectionAssert.AreEquivalent(Output, Input);
 
@@ -252,14 +252,14 @@ namespace RDBMS.Testing
 				for (int i = 0; i < 5; i++)
 				{
 					Input.Add(100 + i);
-					Manager.Write(fs, Manager.Allocate(SampleFile, fs), Converter.IntToBytes(Input[i]));					
+					Manager.Write(fs, Manager.Allocate(SampleFile, fs), Converter.IntToBytes(Input[i]));
 				}
 				Assert.AreEqual(Manager.GetCompleteFile(fs).Length, 20);
 				Output = Converter.BytesToIntList(Manager.GetCompleteFile(fs));
 				CollectionAssert.AreEquivalent(Output, Input);
 				fs.Close();
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				_logger.Error(e.Message);
 			}
@@ -268,6 +268,7 @@ namespace RDBMS.Testing
 				Manager.DropFile(SampleFile);
 			}
 		}
+
 		public void Init()
 		{
 			_logger = new Logger("StorageManagerTest");

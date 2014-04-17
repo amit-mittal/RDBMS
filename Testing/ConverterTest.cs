@@ -7,7 +7,7 @@ using RDBMS.Util;
 namespace RDBMS.Testing
 {
 	[TestClass]
-	class ConverterTest
+	internal class ConverterTest
 	{
 		private Logger _logger;
 
@@ -19,7 +19,7 @@ namespace RDBMS.Testing
 				_logger.Message("Testing ObjectConversion");
 				Dummy col = new Dummy(Dummy.DataType.Int, "Id".ToCharArray(), 4);
 				byte[] colBytes = Converter.ObjectToBytes(col);
-				Dummy actualCol = (Dummy)Converter.BytesToObject(colBytes);
+				Dummy actualCol = (Dummy) Converter.BytesToObject(colBytes);
 				Assert.AreEqual(actualCol, col);
 			}
 			catch (Exception e)
@@ -36,7 +36,7 @@ namespace RDBMS.Testing
 				_logger.Message("Testing ObjectConversionList");
 				Dummy col_1 = new Dummy(Dummy.DataType.Int, "Id", 4);
 				byte[] colBytes_1 = Converter.ObjectToBytes(col_1);
-				
+
 				Dummy col_2 = new Dummy(Dummy.DataType.Char, "Name", 10);
 				byte[] colBytes_2 = Converter.ObjectToBytes(col_2);
 
@@ -46,8 +46,8 @@ namespace RDBMS.Testing
 				Assert.AreEqual(colBytes_1.Length, colBytes_2.Length);
 
 				List<object> objects = Converter.BytesToObjectList(colBytes, colBytes_1.Length);
-				Assert.AreEqual(col_1, (Dummy)objects[0]);
-				Assert.AreEqual(col_2, (Dummy)objects[1]);
+				Assert.AreEqual(col_1, (Dummy) objects[0]);
+				Assert.AreEqual(col_2, (Dummy) objects[1]);
 			}
 			catch (Exception e)
 			{
@@ -118,7 +118,7 @@ namespace RDBMS.Testing
 				String s2 = "World!!";
 				byte[] s2Bytes = Converter.StringToBytes(s2);
 				Assert.AreEqual(s1Bytes.Length, s1Bytes.Length);
-				
+
 				byte[] combinedBytes = new byte[s2Bytes.Length + s1Bytes.Length];
 				s1Bytes.CopyTo(combinedBytes, 0);
 				s2Bytes.CopyTo(combinedBytes, s1Bytes.Length);

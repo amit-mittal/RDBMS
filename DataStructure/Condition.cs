@@ -3,7 +3,7 @@ using RDBMS.Util;
 
 namespace RDBMS.DataStructure
 {
-	class Condition
+	internal class Condition
 	{
 		public enum ConditionType
 		{
@@ -29,6 +29,7 @@ namespace RDBMS.DataStructure
 		/**
 		 * Checks if condition object id valid or not
 		 */
+
 		public bool CheckIfCondtionValueValid()
 		{
 			if (Attribute.Type == Column.DataType.Char)
@@ -60,45 +61,46 @@ namespace RDBMS.DataStructure
 		 * true - if condition is satisfied
 		 * else false
 		 */
+
 		public bool CompareIntegers(int v1)
 		{
 			int v2 = int.Parse(Value);
 			switch (Sign)
 			{
 				case ConditionType.Equal:
-					{
-						if (v1 == v2)
-							return true;
-						return false;
-					}
+				{
+					if (v1 == v2)
+						return true;
+					return false;
+				}
 				case ConditionType.Less:
-					{
-						if (v1 < v2)
-							return true;
-						return false;
-					}
+				{
+					if (v1 < v2)
+						return true;
+					return false;
+				}
 				case ConditionType.Greater:
-					{
-						if (v1 > v2)
-							return true;
-						return false;
-					}
+				{
+					if (v1 > v2)
+						return true;
+					return false;
+				}
 				case ConditionType.LessEqual:
-					{
-						if (v1 <= v2)
-							return true;
-						return false;
-					}
+				{
+					if (v1 <= v2)
+						return true;
+					return false;
+				}
 				case ConditionType.GreaterEqual:
-					{
-						if (v1 >= v2)
-							return true;
-						return false;
-					}
+				{
+					if (v1 >= v2)
+						return true;
+					return false;
+				}
 				default:
-					{
-						return false;
-					}
+				{
+					return false;
+				}
 			}
 		}
 
@@ -108,45 +110,46 @@ namespace RDBMS.DataStructure
 		 * true - if condition is satisfied
 		 * else false
 		 */
+
 		public bool CompareDoubles(double v1)
 		{
 			double v2 = double.Parse(Value);
 			switch (Sign)
 			{
 				case ConditionType.Equal:
-					{
-						if (Math.Abs(v1 - v2) <= Constants.Epsilon)
-							return true;
-						return false;
-					}
+				{
+					if (Math.Abs(v1 - v2) <= Constants.Epsilon)
+						return true;
+					return false;
+				}
 				case ConditionType.Less:
-					{
-						if (v1 < v2)
-							return true;
-						return false;
-					}
+				{
+					if (v1 < v2)
+						return true;
+					return false;
+				}
 				case ConditionType.Greater:
-					{
-						if (v1 > v2)
-							return true;
-						return false;
-					}
+				{
+					if (v1 > v2)
+						return true;
+					return false;
+				}
 				case ConditionType.LessEqual:
-					{
-						if (v1 < v2 || Math.Abs(v1 - v2) <= Constants.Epsilon)
-							return true;
-						return false;
-					}
+				{
+					if (v1 < v2 || Math.Abs(v1 - v2) <= Constants.Epsilon)
+						return true;
+					return false;
+				}
 				case ConditionType.GreaterEqual:
-					{
-						if (v1 > v2 || Math.Abs(v1 - v2) <= Constants.Epsilon)
-							return true;
-						return false;
-					}
+				{
+					if (v1 > v2 || Math.Abs(v1 - v2) <= Constants.Epsilon)
+						return true;
+					return false;
+				}
 				default:
-					{
-						return false;
-					}
+				{
+					return false;
+				}
 			}
 		}
 
@@ -156,45 +159,46 @@ namespace RDBMS.DataStructure
 		 * true - if condition is satisfied
 		 * else false
 		 */
+
 		public bool CompareStrings(String s1)
 		{
 			String s2 = Value;
 			switch (Sign)
 			{
 				case ConditionType.Equal:
-					{
-						if (String.Compare(s1, s2) == 0)
-							return true;
-						return false;
-					}
+				{
+					if (String.Compare(s1, s2) == 0)
+						return true;
+					return false;
+				}
 				case ConditionType.Less:
-					{
-						if (String.Compare(s1, s2) < 0)
-							return true;
-						return false;
-					}
+				{
+					if (String.Compare(s1, s2) < 0)
+						return true;
+					return false;
+				}
 				case ConditionType.Greater:
-					{
-						if (String.Compare(s1, s2) > 0)
-							return true;
-						return false;
-					}
+				{
+					if (String.Compare(s1, s2) > 0)
+						return true;
+					return false;
+				}
 				case ConditionType.LessEqual:
-					{
-						if (String.Compare(s1, s2) <= 0)
-							return true;
-						return false;
-					}
+				{
+					if (String.Compare(s1, s2) <= 0)
+						return true;
+					return false;
+				}
 				case ConditionType.GreaterEqual:
-					{
-						if (String.Compare(s1, s2) >= 0)
-							return true;
-						return false;
-					}
+				{
+					if (String.Compare(s1, s2) >= 0)
+						return true;
+					return false;
+				}
 				default:
-					{
-						return false;
-					}
+				{
+					return false;
+				}
 			}
 		}
 	}

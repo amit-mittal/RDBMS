@@ -5,7 +5,7 @@ using System.Linq;
 namespace RDBMS.DataStructure
 {
 	[Serializable]
-	class Table
+	internal class Table
 	{
 		public String DbName;
 		public String Name;
@@ -14,7 +14,7 @@ namespace RDBMS.DataStructure
 		//TODO: Also add primary key later
 
 		#region Constructors
-		
+
 		public Table(String dbName, String name, List<Column> columns, List<Column> indexColumns)
 		{
 			DbName = dbName;
@@ -29,6 +29,7 @@ namespace RDBMS.DataStructure
 		 * @returns true if column of the table 
 		 * has been indexed
 		 */
+
 		public bool CheckIfColumnIndexed(Column column)
 		{
 			foreach (Column col in IndexColumns)
@@ -43,12 +44,13 @@ namespace RDBMS.DataStructure
 		 * @returns true if Condition follows all the conditions
 		 * related to table
 		 */
+
 		public bool CheckIfConditionValid(Condition condition)
 		{
-			if(condition == null)
+			if (condition == null)
 				return true;
 
-			if(GetColumnIndex(condition.Attribute) == -1)
+			if (GetColumnIndex(condition.Attribute) == -1)
 				return false;
 
 			return condition.CheckIfCondtionValueValid();
@@ -57,20 +59,22 @@ namespace RDBMS.DataStructure
 		/**
 		 * Returns the index of the column in the list
 		 */
+
 		public int GetColumnIndex(Column col)
 		{
-			for (int i = 0; i < Columns.Count; i++)//iterating throw each column
+			for (int i = 0; i < Columns.Count; i++) //iterating throw each column
 			{
 				if (Columns[i].Equals(col))
 					return i;
 			}
-			return -1;//if no column found
+			return -1; //if no column found
 		}
 
 		/**
 		 * Returns the column corresponding to index
 		 * in the list
 		 */
+
 		public Column GetColumn(int index)
 		{
 			return Columns[index];
@@ -80,6 +84,7 @@ namespace RDBMS.DataStructure
 		 * Returns size of char array needed to stream the
 		 * record
 		 */
+
 		public int GetSizeOfRecordArray()
 		{
 			return Columns.Sum(col => col.Length);
@@ -89,6 +94,7 @@ namespace RDBMS.DataStructure
 		 * Returns a fixed length char array from a record
 		 * using the list of column
 		 */
+
 		public char[] RecordToCharArray(Record record)
 		{
 			int size = GetSizeOfRecordArray();
@@ -96,7 +102,7 @@ namespace RDBMS.DataStructure
 			int prev = 0;
 			for (int i = 0; i < Columns.Count; i++)
 			{
-				if(record.Fields[i] != null)
+				if (record.Fields[i] != null)
 					record.Fields[i].ToCharArray().CopyTo(arr, prev);
 				prev += Columns[i].Length;
 			}
@@ -107,12 +113,13 @@ namespace RDBMS.DataStructure
 		 * Gets the position of the column in the 
 		 * serialized record
 		 */
+
 		public int GetPositionInRecord(Column column)
 		{
 			int prev = 0;
 			foreach (Column col in Columns)
 			{
-				if(column.Equals(col))
+				if (column.Equals(col))
 					break;
 				prev += col.Length;
 			}
@@ -126,6 +133,7 @@ namespace RDBMS.DataStructure
 		 * To get string for this format - use 
 		 * Converter.BytesToChar function
 		 */
+
 		public Record StringToRecord(String str)
 		{
 			int prev = 0;

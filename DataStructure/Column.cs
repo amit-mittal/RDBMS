@@ -1,9 +1,10 @@
 ﻿using System;
 using RDBMS.Util;
 
-namespace RDBMS.DataStructure{
+namespace RDBMS.DataStructure
+{
 	[Serializable]
-	class Column
+	internal class Column
 	{
 		public enum DataType
 		{
@@ -35,11 +36,11 @@ namespace RDBMS.DataStructure{
 		public override bool Equals(object obj)
 		{
 			Column col = (Column) obj;
-			if(Type != col.Type)
+			if (Type != col.Type)
 				return false;
-			if(!Name.Equals(col.Name))
+			if (!Name.Equals(col.Name))
 				return false;
-			if(Length != col.Length)
+			if (Length != col.Length)
 				return false;
 			return true;
 		}

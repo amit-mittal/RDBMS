@@ -10,7 +10,8 @@ namespace RDBMS.FileManager
 	 * data accordingly or throws exception
 	 * TODO testing of this class pending
 	 */
-	class SubQueryHandler
+
+	internal class SubQueryHandler
 	{
 		//TODO make sure consisitency in null and empty string in record object
 		public DatabaseManager DbManager = null;
@@ -18,13 +19,13 @@ namespace RDBMS.FileManager
 		//handles database storageManager and table storageManager acc 2 the task
 
 		#region Constructors
-		
+
 		public SubQueryHandler()
 		{
 			//dbManager is only init when use database query used
 			//Init by QueryHandler class in the starting - only 1 instance made
 		}
-		
+
 		#endregion
 
 		#region Database Methods
@@ -37,7 +38,7 @@ namespace RDBMS.FileManager
 
 		public void UseDatabase(String dbName)
 		{
-			if(DbManager == null)
+			if (DbManager == null)
 				DbManager = new DatabaseManager();
 			DbManager.UseDatabase(dbName);
 		}
@@ -65,11 +66,12 @@ namespace RDBMS.FileManager
 		#endregion
 
 		#region Table Methods
-		
+
 		/**
 		 * Initially no index can be added, have to write
 		 * explicit command
 		 */
+
 		public void CreateTable(String tableName, List<Column> columns)
 		{
 			CheckIfDatabaseSelected();
@@ -94,13 +96,14 @@ namespace RDBMS.FileManager
 		/**
 		 * Add that column to index
 		 */
+
 		public void CreateIndex(String tableName, Column column)
 		{
 			CheckIfDatabaseSelected();
 			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
 
 			//checking if index on it already exists
-			if(tableManager.table.CheckIfColumnIndexed(column))
+			if (tableManager.table.CheckIfColumnIndexed(column))
 				throw new Exception("Column has already been indexed");
 
 			tableManager.AddIndex(column);
@@ -110,11 +113,12 @@ namespace RDBMS.FileManager
 		 * After checking for error if any, inserts the record into
 		 * the table and index file
 		 */
+
 		public void InsertRecordToTable(String tableName, Record record)
 		{
 			CheckIfDatabaseSelected();
 			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
-			tableManager.CheckRecord(record);//checks for any error in the record
+			tableManager.CheckRecord(record); //checks for any error in the record
 			int address = tableManager.InsertRecord(record);
 			tableManager.InsertRecordToIndices(record, address);
 		}
@@ -124,6 +128,7 @@ namespace RDBMS.FileManager
 		 * 
 		 * If condition null that means deleting all the records
 		 */
+
 		public void DeleteRecordsFromTable(String tableName, Condition condition)
 		{
 			CheckIfDatabaseSelected();
@@ -151,11 +156,12 @@ namespace RDBMS.FileManager
 		 * Check for error if there in updatedColumns
 		 * If no error combine with old records to get new and updated records
 		 */
+
 		public void UpdateRecordToTable(String tableName, Record updatedColumns, Condition condition)
 		{
 			CheckIfDatabaseSelected();
 			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
-			
+
 			//checking for errors in objects
 			tableManager.CheckRecord(updatedColumns);
 			if (!tableManager.table.CheckIfConditionValid(condition))
@@ -166,7 +172,7 @@ namespace RDBMS.FileManager
 			Dictionary<int, Record> oldRecords = SelectRecordsFromTable(tableName, condition);
 			Dictionary<int, Record> newRecords = new Dictionary<int, Record>(oldRecords);
 
-			for (int i = 0; i < updatedColumns.Fields.Count; i++)//updating new records
+			for (int i = 0; i < updatedColumns.Fields.Count; i++) //updating new records
 			{
 				String value = updatedColumns.Fields[i];
 				if (value != null)
@@ -185,6 +191,7 @@ namespace RDBMS.FileManager
 		/**
 		 * @returns Dictionart<Address, Record> accordingly using the index or linearly
 		 */
+
 		public Dictionary<int, Record> SelectRecordsFromTable(String tableName, Condition condition)
 		{
 			CheckIfDatabaseSelected();

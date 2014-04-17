@@ -2,7 +2,7 @@
 
 namespace RDBMS.QueryManager
 {
-	class Error
+	internal class Error
 	{
 		public int ErrorCode;
 		public String ErrorMsg;

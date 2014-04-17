@@ -4,7 +4,7 @@ using System.IO;
 namespace RDBMS.SpaceManager
 {
 	//not needed as of now
-	class BufferManager
+	internal class BufferManager
 	{
 		//handles storage storageManager
 		//this class can bring any amount of data

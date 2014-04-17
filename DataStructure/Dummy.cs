@@ -1,8 +1,9 @@
 ﻿using System;
 
-namespace RDBMS.DataStructure{
+namespace RDBMS.DataStructure
+{
 	[Serializable]
-	class Dummy
+	internal class Dummy
 	{
 		public enum DataType
 		{
@@ -36,11 +37,11 @@ namespace RDBMS.DataStructure{
 		public override bool Equals(object obj)
 		{
 			Dummy col = (Dummy) obj;
-			if(Type != col.Type)
+			if (Type != col.Type)
 				return false;
-			if(!Name.ToString().Equals(col.Name.ToString()))
+			if (!Name.ToString().Equals(col.Name.ToString()))
 				return false;
-			if(Length != col.Length)
+			if (Length != col.Length)
 				return false;
 			return true;
 		}

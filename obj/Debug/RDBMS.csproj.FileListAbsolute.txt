@@ -4,3 +4,11 @@ C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\bin\Debug\RDBMS.
 C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\obj\Debug\RDBMS.exe
 C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\obj\Debug\RDBMS.pdb
 C:\Users\AMIT\documents\visual studio 2013\Projects\RDBMS\RDBMS\obj\Debug\RDBMS.csprojResolveAssemblyReference.cache
+C:\Users\AMIT\Documents\Visual Studio 2013\Projects\RDBMS\RDBMS\bin\Debug\Irony.dll
+C:\Users\AMIT\Documents\Visual Studio 2013\Projects\RDBMS\RDBMS\bin\Debug\Irony.GrammarExplorer.exe
+C:\Users\AMIT\Documents\Visual Studio 2013\Projects\RDBMS\RDBMS\bin\Debug\Irony.Interpreter.dll
+C:\Users\AMIT\Documents\Visual Studio 2013\Projects\RDBMS\RDBMS\bin\Debug\FastColoredTextBox.dll
+C:\Users\AMIT\Documents\Visual Studio 2013\Projects\RDBMS\RDBMS\bin\Debug\Irony.pdb
+C:\Users\AMIT\Documents\Visual Studio 2013\Projects\RDBMS\RDBMS\bin\Debug\Irony.GrammarExplorer.pdb
+C:\Users\AMIT\Documents\Visual Studio 2013\Projects\RDBMS\RDBMS\bin\Debug\Irony.Interpreter.pdb
+C:\Users\AMIT\Documents\Visual Studio 2013\Projects\RDBMS\RDBMS\bin\Debug\FastColoredTextBox.xml

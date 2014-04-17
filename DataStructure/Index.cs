@@ -3,7 +3,7 @@
 namespace RDBMS.DataStructure
 {
 	[Serializable]
-	class Index<T> : IComparable where T : IComparable
+	internal class Index<T> : IComparable where T : IComparable
 	{
 		public T Key;
 		public int Address;
@@ -12,7 +12,7 @@ namespace RDBMS.DataStructure
 		{
 			Key = key;
 			Address = address;
-		} 
+		}
 
 		public int CompareTo(object obj)
 		{

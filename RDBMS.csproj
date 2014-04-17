@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -32,6 +33,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Irony">
+      <HintPath>..\..\..\..\..\Desktop\Irony_2013_12_12\Irony_2013_12_12\Irony\bin\Debug\Irony.dll</HintPath>
+    </Reference>
+    <Reference Include="Irony.GrammarExplorer">
+      <HintPath>..\..\..\..\..\Desktop\Irony_2013_12_12\Irony_2013_12_12\Irony.GrammarExplorer\bin\Debug\Irony.GrammarExplorer.exe</HintPath>
+    </Reference>
+    <Reference Include="Irony.Interpreter">
+      <HintPath>..\..\..\..\..\Desktop\Irony_2013_12_12\Irony_2013_12_12\Irony.GrammarExplorer\bin\Debug\Irony.Interpreter.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -42,10 +52,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BtreeDictionary\BtreeDelete.cs" />
+    <Compile Include="BtreeDictionary\BtreeDictionary.cs" />
+    <Compile Include="BtreeDictionary\BtreeDictionaryObject.cs" />
+    <Compile Include="BtreeDictionary\BtreeExtras.cs" />
+    <Compile Include="BtreeDictionary\BtreeFind.cs" />
+    <Compile Include="BtreeDictionary\BtreeInsert.cs" />
+    <Compile Include="BtreeDictionary\BtreeKeysValues.cs" />
+    <Compile Include="BtreeDictionary\BtreeNodes.cs" />
+    <Compile Include="BtreeDictionary\BtreePath.cs" />
     <Compile Include="DataStructure\Column.cs" />
     <Compile Include="DataStructure\Condition.cs" />
     <Compile Include="DataStructure\Database.cs" />
     <Compile Include="DataStructure\Dummy.cs" />
+    <Compile Include="DataStructure\Index.cs" />
     <Compile Include="DataStructure\Record.cs" />
     <Compile Include="DataStructure\Table.cs" />
     <Compile Include="FileManager\DatabaseManager.cs" />
@@ -54,9 +74,10 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryManager\Error.cs" />
-    <Compile Include="QueryManager\QueryEvaluator.cs" />
+    <Compile Include="QueryManager\QueryParser.cs" />
     <Compile Include="QueryManager\QueryHandler.cs" />
     <Compile Include="QueryManager\QueryOptimizer.cs" />
+    <Compile Include="QueryManager\SqlGrammar.cs" />
     <Compile Include="SpaceManager\BufferManager.cs" />
     <Compile Include="SpaceManager\StorageManager.cs" />
     <Compile Include="Testing\ConverterTest.cs" />
@@ -71,7 +92,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -14,7 +14,8 @@ namespace RDBMS.FileManager
 	 * 
 	 * Tests in TableManagerTest.cs
 	 */
-	class TableManager
+
+	internal class TableManager
 	{
 		public Table table;
 		public StorageManager storageManager;
@@ -31,6 +32,7 @@ namespace RDBMS.FileManager
 		 * of table
 		 * Will be needed when using select, insert, etc.
 		 */
+
 		public TableManager(String dbName, String tableName)
 		{
 			String path = GetFilePath.Table(dbName, tableName);
@@ -55,6 +57,7 @@ namespace RDBMS.FileManager
 		 * IMPORTANT - Presently assumed indexColumns would be empty
 		 * Index can be added on later using AddIndex
 		 */
+
 		public void CreateTable(string dbName, string tableName, List<Column> columns)
 		{
 			String path = GetFilePath.Table(dbName, tableName);
@@ -67,10 +70,10 @@ namespace RDBMS.FileManager
 			else
 			{
 				table = new Table(dbName, tableName, columns, new List<Column>());
-				storageManager.CreateFolder(path);//table folder
-				Converter.ObjectToFile(table, conf);//schema file of table
+				storageManager.CreateFolder(path); //table folder
+				Converter.ObjectToFile(table, conf); //schema file of table
 				byte[] record = Converter.CharToBytes(new char[table.GetSizeOfRecordArray()]);
-				storageManager.CreateFile(records, record.Length, true);//records file of table
+				storageManager.CreateFile(records, record.Length, true); //records file of table
 			}
 		}
 
@@ -96,6 +99,7 @@ namespace RDBMS.FileManager
 		 * Writes the table data structure in memory
 		 * to the conf file
 		 */
+
 		public void UpdateTableToFile()
 		{
 			String conf = GetFilePath.TableConf(table.DbName, table.Name);
@@ -106,6 +110,7 @@ namespace RDBMS.FileManager
 		 * Adding index to particular column
 		 * if some records were already there
 		 */
+
 		public void AddIndex(Column index)
 		{
 			//making the index file
@@ -189,6 +194,7 @@ namespace RDBMS.FileManager
 		 * record -> to be inserted
 		 * address -> entry in the records file
 		 */
+
 		public void InsertRecordToIndices(Record record, int address)
 		{
 			foreach (Column indexColumn in table.IndexColumns)
@@ -200,7 +206,7 @@ namespace RDBMS.FileManager
 				{
 					if (value != null)
 					{
-						BtreeDictionary<Index<int>, int> intbptree = (BtreeDictionary<Index<int>, int>)Converter.FileToObject(indexFile);
+						BtreeDictionary<Index<int>, int> intbptree = (BtreeDictionary<Index<int>, int>) Converter.FileToObject(indexFile);
 						intbptree.Add(new Index<int>(int.Parse(value), address), address);
 						Converter.ObjectToFile(intbptree, indexFile);
 					}
@@ -209,7 +215,8 @@ namespace RDBMS.FileManager
 				{
 					if (value != null)
 					{
-						BtreeDictionary<Index<double>, int> doublebptree = (BtreeDictionary<Index<double>, int>)Converter.FileToObject(indexFile);
+						BtreeDictionary<Index<double>, int> doublebptree =
+							(BtreeDictionary<Index<double>, int>) Converter.FileToObject(indexFile);
 						doublebptree.Add(new Index<double>(double.Parse(value), address), address);
 						Converter.ObjectToFile(doublebptree, indexFile);
 					}
@@ -218,11 +225,12 @@ namespace RDBMS.FileManager
 				{
 					if (value != null)
 					{
-						BtreeDictionary<Index<String>, int> stringbptree = (BtreeDictionary<Index<String>, int>)Converter.FileToObject(indexFile);
+						BtreeDictionary<Index<String>, int> stringbptree =
+							(BtreeDictionary<Index<String>, int>) Converter.FileToObject(indexFile);
 						stringbptree.Add(new Index<String>(value, address), address);
 						Converter.ObjectToFile(stringbptree, indexFile);
 					}
-				}	
+				}
 			}
 		}
 
@@ -231,6 +239,7 @@ namespace RDBMS.FileManager
 		 * Those fields should be null which have not been set
 		 * @returns Address where it is inserted
 		 */
+
 		public int InsertRecord(Record record)
 		{
 			//Inserting entry into record file
@@ -257,13 +266,14 @@ namespace RDBMS.FileManager
 		 * if condition is null means select all records
 		 * Does Linear Search of all the records
 		 */
+
 		public Dictionary<int, Record> GetAddressRecordDict(Condition condition)
 		{
-			int index = -1;//means unitialized
+			int index = -1; //means unitialized
 			if (condition != null)
 			{
 				index = table.GetColumnIndex(condition.Attribute);
-				if (index == -1)//no column matched
+				if (index == -1) //no column matched
 					return new Dictionary<int, Record>();
 			}
 
@@ -280,7 +290,7 @@ namespace RDBMS.FileManager
 			bitmapFs.Close();
 
 			//traversing the whole file
-			int NumRecords = Constants.MaxSelectRecords;//TODO use this if read more than a chunk
+			int NumRecords = Constants.MaxSelectRecords; //TODO use this if read more than a chunk
 			for (int offset = storageManager.HeaderSize; offset < endOfFile; offset += recordSize)
 			{
 				if (!bitmapSet.Contains(offset))
@@ -313,16 +323,17 @@ namespace RDBMS.FileManager
 		 * Call this function only if that column is an index
 		 * @param name="condition" NotNullable
 		 */
+
 		public Dictionary<int, Record> GetAddressRecordDictOnIndex(Condition condition)
 		{
 			//initializing the variables
 			Dictionary<int, Record> finalDict = new Dictionary<int, Record>();
 			List<int> addresses = new List<int>();
 
-			int index = -1;//means unitialized
+			int index = -1; //means unitialized
 			if (condition != null)
 				index = table.GetColumnIndex(condition.Attribute);
-			if (index == -1 || condition == null)//not feasible columns
+			if (index == -1 || condition == null) //not feasible columns
 				return finalDict;
 
 			String indexFile = GetFilePath.TableColumnIndex(table.DbName, table.Name, condition.Attribute.Name);
@@ -337,8 +348,8 @@ namespace RDBMS.FileManager
 			if (condition.Attribute.Type == Column.DataType.Int)
 			{
 				//getting tree into main memory
-				intbptree = (BtreeDictionary<Index<int>, int>)Converter.FileToObject(indexFile);
-				
+				intbptree = (BtreeDictionary<Index<int>, int>) Converter.FileToObject(indexFile);
+
 				//initialized possible feasible range of the records
 				IEnumerable range;
 				if (condition.Sign == Condition.ConditionType.Equal)
@@ -361,7 +372,7 @@ namespace RDBMS.FileManager
 			else if (condition.Attribute.Type == Column.DataType.Double)
 			{
 				//getting tree into main memory
-				doublebptree = (BtreeDictionary<Index<double>, int>)Converter.FileToObject(indexFile);
+				doublebptree = (BtreeDictionary<Index<double>, int>) Converter.FileToObject(indexFile);
 
 				//initialized possible feasible range of the records
 				IEnumerable range;
@@ -385,7 +396,7 @@ namespace RDBMS.FileManager
 			else if (condition.Attribute.Type == Column.DataType.Char)
 			{
 				//getting tree into main memory
-				stringbptree = (BtreeDictionary<Index<String>, int>)Converter.FileToObject(indexFile);
+				stringbptree = (BtreeDictionary<Index<String>, int>) Converter.FileToObject(indexFile);
 
 				//initialized possible feasible range of the records
 				IEnumerable range;
@@ -413,7 +424,7 @@ namespace RDBMS.FileManager
 				finalDict.Add(address, record);
 			}
 			fs.Close();
-			
+
 			return finalDict;
 		}
 
@@ -424,6 +435,7 @@ namespace RDBMS.FileManager
 		/**
 		 * Gets the dictionary containing the address => updated record
 		 */
+
 		public void UpdateRecordToIndices(Dictionary<int, Record> oldRecords, Dictionary<int, Record> updatedRecords)
 		{
 			DeleteRecordsFromIndices(oldRecords);
@@ -436,6 +448,7 @@ namespace RDBMS.FileManager
 		/**
 		 * Gets the dictionary containing the address => updated record
 		 */
+
 		public void UpdateRecord(Dictionary<int, Record> updatedRecords)
 		{
 			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
@@ -459,6 +472,7 @@ namespace RDBMS.FileManager
 		 * Takes dictionary containing the address => to be deleted record
 		 * And deletes that particular column value from the index path
 		 */
+
 		public void DeleteRecordsFromIndices(Dictionary<int, Record> uselessRecords)
 		{
 			foreach (Column indexColumn in table.IndexColumns)
@@ -468,7 +482,7 @@ namespace RDBMS.FileManager
 
 				if (table.Columns[position].Type == Column.DataType.Int)
 				{
-					BtreeDictionary<Index<int>, int> intbptree = (BtreeDictionary<Index<int>, int>)Converter.FileToObject(indexFile);
+					BtreeDictionary<Index<int>, int> intbptree = (BtreeDictionary<Index<int>, int>) Converter.FileToObject(indexFile);
 					foreach (KeyValuePair<int, Record> pair in uselessRecords)
 					{
 						int address = pair.Key;
@@ -480,7 +494,8 @@ namespace RDBMS.FileManager
 				}
 				else if (table.Columns[position].Type == Column.DataType.Double)
 				{
-					BtreeDictionary<Index<double>, int> doublebptree = (BtreeDictionary<Index<double>, int>)Converter.FileToObject(indexFile);
+					BtreeDictionary<Index<double>, int> doublebptree =
+						(BtreeDictionary<Index<double>, int>) Converter.FileToObject(indexFile);
 					foreach (KeyValuePair<int, Record> pair in uselessRecords)
 					{
 						int address = pair.Key;
@@ -492,7 +507,8 @@ namespace RDBMS.FileManager
 				}
 				else if (table.Columns[position].Type == Column.DataType.Char)
 				{
-					BtreeDictionary<Index<String>, int> stringbptree = (BtreeDictionary<Index<String>, int>)Converter.FileToObject(indexFile);
+					BtreeDictionary<Index<String>, int> stringbptree =
+						(BtreeDictionary<Index<String>, int>) Converter.FileToObject(indexFile);
 					foreach (KeyValuePair<int, Record> pair in uselessRecords)
 					{
 						int address = pair.Key;
@@ -508,6 +524,7 @@ namespace RDBMS.FileManager
 		/**
 		 * Takes dictionary containing the address => to be deleted record
 		 */
+
 		public void DeleteRecords(Dictionary<int, Record> uselessRecords)
 		{
 			String recordsPath = GetFilePath.TableRecords(table.DbName, table.Name);
@@ -527,6 +544,7 @@ namespace RDBMS.FileManager
 		 * 
 		 * if condition is null means select all records
 		 */
+
 		public List<Record> SelectRecords(Condition condition)
 		{
 			Dictionary<int, Record> selectedRecords = GetAddressRecordDict(condition);
@@ -537,6 +555,7 @@ namespace RDBMS.FileManager
 		 * @returns List<Record> 
 		 * which satisfies the given condition on the indexed column
 		 */
+
 		public List<Record> SelectRecordsOnIndex(Condition condition)
 		{
 			Dictionary<int, Record> selectedRecords = GetAddressRecordDictOnIndex(condition);
@@ -544,13 +563,14 @@ namespace RDBMS.FileManager
 		}
 
 		#endregion
-		
+
 		#region Helper Functions
 
 		/**
 		 * Tells if the record satisfies the condition or not
 		 * @param name="index" column index on which condition is applied
 		 */
+
 		private bool IsRecordValid(Record record, Condition condition, int index)
 		{
 			String value = record.Fields[index];
@@ -561,6 +581,7 @@ namespace RDBMS.FileManager
 		 * Tells if the column value satisfies the condition or not
 		 * @param name="index" column index on which condition is applied
 		 */
+
 		private bool IsColumnValueValid(String value, Condition condition, int index)
 		{
 			if (value == null)
@@ -594,6 +615,7 @@ namespace RDBMS.FileManager
 		 * Checks if record contains some error or not
 		 * Thorws exception if some error found
 		 */
+
 		public void CheckRecord(Record record)
 		{
 			//checking if some error is in the field values
@@ -617,7 +639,7 @@ namespace RDBMS.FileManager
 					}
 				}
 				else if (table.Columns[i].Type == Column.DataType.Char)
-				{	
+				{
 				}
 
 				if (value != null && value.Length > table.Columns[i].Length)

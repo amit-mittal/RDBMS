@@ -18,11 +18,13 @@ namespace RDBMS.Util
 	 * 
 	 * TestClass: ConverterTest.cs
 	 */
-	static class Converter
+
+	internal static class Converter
 	{
 		/**
 		 * Object Conversion Methods in file
 		 */
+
 		public static void ObjectToFile(object obj, String path)
 		{
 			Stream stream = File.Open(path, FileMode.Create);
@@ -54,6 +56,7 @@ namespace RDBMS.Util
 		/**
 		 * Object Conversion Methods in memory
 		 */
+
 		public static byte[] ObjectToBytes(object obj)
 		{
 			MemoryStream fs = new MemoryStream();
@@ -71,7 +74,6 @@ namespace RDBMS.Util
 			{
 				fs.Close();
 			}
-
 		}
 
 		public static object BytesToObject(byte[] bytearray)
@@ -82,7 +84,7 @@ namespace RDBMS.Util
 			{
 				return formatter.Deserialize(stream);
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				Console.WriteLine(e.Message);
 				return null;
@@ -94,7 +96,7 @@ namespace RDBMS.Util
 			try
 			{
 				List<object> list = new List<object>();
-				for (int startIndex = 0; startIndex < bytearray.Length; startIndex+=recordLength)
+				for (int startIndex = 0; startIndex < bytearray.Length; startIndex += recordLength)
 				{
 					BinaryFormatter formatter = new BinaryFormatter();
 					MemoryStream stream = new MemoryStream(bytearray, startIndex, recordLength);
@@ -103,7 +105,7 @@ namespace RDBMS.Util
 				}
 				return list;
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				return null;
 			}
@@ -112,6 +114,7 @@ namespace RDBMS.Util
 		/**
 		 * Integer Conversion Methods
 		 */
+
 		public static byte[] IntToBytes(int value)
 		{
 			return BitConverter.GetBytes(value);
@@ -144,6 +147,7 @@ namespace RDBMS.Util
 		/**
 		 * Char array conversion methods
 		 */
+
 		public static byte[] CharToBytes(char[] str)
 		{
 			return Encoding.ASCII.GetBytes(str);
@@ -157,16 +161,17 @@ namespace RDBMS.Util
 		/**
 		 * String conversion methods
 		 */
+
 		public static byte[] StringToBytes(String str, int size = Constants.MaxStringLength)
 		{
-			byte[] bytes = new byte[size * sizeof(char)];
-			Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, str.Length * sizeof (char));
+			byte[] bytes = new byte[size*sizeof (char)];
+			Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, str.Length*sizeof (char));
 			return bytes;
 		}
 
 		public static String BytesToString(byte[] bytearray)
 		{
-			char[] chars = new char[bytearray.Length / sizeof(char)];
+			char[] chars = new char[bytearray.Length/sizeof (char)];
 			Buffer.BlockCopy(bytearray, 0, chars, 0, bytearray.Length);
 			String s = new string(chars).Replace("\0", string.Empty);
 			return s;
@@ -195,11 +200,12 @@ namespace RDBMS.Util
 		/**
 		 * Double Conversion methods
 		 */
+
 		public static byte[] DoubleToBytes(double value)
 		{
 			return BitConverter.GetBytes(value);
 		}
-		
+
 		public static double BytesToDouble(byte[] bytearray)
 		{
 			double record = BitConverter.ToDouble(bytearray, 0);
@@ -210,7 +216,7 @@ namespace RDBMS.Util
 		{
 			try
 			{
-				int recordLength = sizeof(double);
+				int recordLength = sizeof (double);
 				List<double> list = new List<double>();
 				for (int startIndex = 0; startIndex < bytearray.Length; startIndex += recordLength)
 				{

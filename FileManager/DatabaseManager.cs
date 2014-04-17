@@ -10,7 +10,8 @@ namespace RDBMS.FileManager
 	/**
 	 * Handles queries related to the database
 	 */
-	class DatabaseManager
+
+	internal class DatabaseManager
 	{
 		public Database db;
 		public StorageManager storageManager = new StorageManager();
@@ -19,6 +20,7 @@ namespace RDBMS.FileManager
 		 * Not initializing db object as that will
 		 * be done after he has used "use database" query
 		 */
+
 		public void CreateDatabase(String dbName)
 		{
 			String path = GetFilePath.Database(dbName);
@@ -72,7 +74,7 @@ namespace RDBMS.FileManager
 			String path = GetFilePath.Database(db.Name);
 			DirectoryInfo dirInfo = new DirectoryInfo(path);
 			DirectoryInfo[] subdirInfo = dirInfo.GetDirectories();
-			
+
 			List<String> subdirNames = new List<string>();
 			foreach (DirectoryInfo subdir in subdirInfo)
 			{

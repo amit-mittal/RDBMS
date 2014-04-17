@@ -6,7 +6,8 @@ namespace RDBMS.Util
 	 * Returns the paths of the directory
 	 * or file according to if database or table
 	 */
-	static class GetFilePath
+
+	internal static class GetFilePath
 	{
 		private const String Root = "E:\\RDBMS\\";
 

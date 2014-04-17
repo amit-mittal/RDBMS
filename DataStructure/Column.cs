@@ -17,9 +17,7 @@ namespace RDBMS.DataStructure
 		public String Name;
 		public int Length;
 
-		public Column()
-		{
-		}
+		#region CONSTRUCTORS
 
 		public Column(DataType type, String name, int length)
 		{
@@ -32,6 +30,22 @@ namespace RDBMS.DataStructure
 			else if (type == DataType.Char)
 				Length = length;
 		}
+
+		public Column(String type, String name, String length)
+		{
+			Name = name;
+			if (int.TryParse(length, out Length) == false)
+				Length = Constants.DefaultLen;
+
+			if(type == "char")
+				Type = DataType.Char;
+			else if(type == "int")
+				Type = DataType.Int;
+			else if (type == "double")
+				Type = DataType.Double;
+		}
+
+		#endregion
 
 		public override bool Equals(object obj)
 		{

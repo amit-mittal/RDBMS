@@ -157,7 +157,7 @@ namespace RDBMS.QueryManager
 			createDatabaseStmt.Rule = CREATE + DATABASE + Id;
 
 			//Use database
-			useDatabaseStmt.Rule = USE + DATABASE + Id;
+			useDatabaseStmt.Rule = USE + Id;
 
 			//Drop database
 			dropDatabaseStmt.Rule = DROP + DATABASE + Id;
@@ -208,7 +208,7 @@ namespace RDBMS.QueryManager
 			//Insert stmt
 			insertStmt.Rule = INSERT + intoOpt + Id + idlistPar + insertData;
 			insertData.Rule = selectStmt | VALUES + "(" + exprList + ")";
-			intoOpt.Rule = Empty | INTO; //Into is optional in MSSQL
+			intoOpt.Rule = /*Empty | */INTO; //Into is optional in MSSQL
 
 			//Update stmt
 			updateStmt.Rule = UPDATE + Id + SET + assignList + whereClauseOpt;

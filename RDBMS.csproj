@@ -86,6 +86,7 @@
     <Compile Include="Testing\TableManagerTest.cs" />
     <Compile Include="Util\Constants.cs" />
     <Compile Include="Util\Converter.cs" />
+    <Compile Include="Util\DisplayMessage.cs" />
     <Compile Include="Util\GetFilePath.cs" />
     <Compile Include="Util\Logger.cs" />
   </ItemGroup>

@@ -18,6 +18,8 @@ namespace RDBMS.Util
 		public const int IntStringLen = 11; //if you change this, will have to change the tests address constants
 		public const int DoubleStringLen = 11;
 
+		public const int DefaultLen = 11;//default len if not specified
+
 		public const int NullAsInt = -12345678;
 		public const double NullAsDouble = -1234567.8;
 		public const String NullAsString = "";

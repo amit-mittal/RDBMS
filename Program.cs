@@ -11,12 +11,16 @@ namespace RDBMS
 		private static void Main(string[] args)
 		{
 			var qh = new QueryHandler();
-//			while (true)
-//			{
-				Console.Write("merasql> ");
-				String str = "CREATE DATABASE data";
-				qh.SetQuery(str);
-//			}
+			Console.Write("merasql> ");
+			String str = "INSERT INTO TABLE_1 (" +
+						"COL_1, " +
+						"COL_2" +
+						") " +
+						" VALUES ( " +
+						"5 , " +
+						"'10'" +
+						" ) ";
+			qh.SetQuery(str);
 
 			//InitTests();
 			Console.ReadKey();

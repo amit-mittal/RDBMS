@@ -2,6 +2,7 @@
 
 namespace RDBMS.QueryManager
 {
+	//class not getting used right now
 	internal class Error
 	{
 		public int ErrorCode;

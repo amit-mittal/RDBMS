@@ -29,7 +29,6 @@ namespace RDBMS.DataStructure
 		 * @returns true if column of the table 
 		 * has been indexed
 		 */
-
 		public bool CheckIfColumnIndexed(Column column)
 		{
 			foreach (Column col in IndexColumns)
@@ -44,7 +43,6 @@ namespace RDBMS.DataStructure
 		 * @returns true if Condition follows all the conditions
 		 * related to table
 		 */
-
 		public bool CheckIfConditionValid(Condition condition)
 		{
 			if (condition == null)
@@ -59,7 +57,6 @@ namespace RDBMS.DataStructure
 		/**
 		 * Returns the index of the column in the list
 		 */
-
 		public int GetColumnIndex(Column col)
 		{
 			for (int i = 0; i < Columns.Count; i++) //iterating throw each column
@@ -74,17 +71,29 @@ namespace RDBMS.DataStructure
 		 * Returns the column corresponding to index
 		 * in the list
 		 */
-
 		public Column GetColumn(int index)
 		{
 			return Columns[index];
 		}
 
 		/**
+		 * Returns the column corresponding to name
+		 * in the list
+		 */
+		public Column GetColumnByName(String colName)
+		{
+			foreach (var column in Columns)
+			{
+				if (column.Name == colName)
+					return column;
+			}
+			return null;
+		}
+
+		/**
 		 * Returns size of char array needed to stream the
 		 * record
 		 */
-
 		public int GetSizeOfRecordArray()
 		{
 			return Columns.Sum(col => col.Length);
@@ -94,7 +103,6 @@ namespace RDBMS.DataStructure
 		 * Returns a fixed length char array from a record
 		 * using the list of column
 		 */
-
 		public char[] RecordToCharArray(Record record)
 		{
 			int size = GetSizeOfRecordArray();
@@ -113,7 +121,6 @@ namespace RDBMS.DataStructure
 		 * Gets the position of the column in the 
 		 * serialized record
 		 */
-
 		public int GetPositionInRecord(Column column)
 		{
 			int prev = 0;
@@ -133,7 +140,6 @@ namespace RDBMS.DataStructure
 		 * To get string for this format - use 
 		 * Converter.BytesToChar function
 		 */
-
 		public Record StringToRecord(String str)
 		{
 			int prev = 0;

@@ -11,6 +11,8 @@ namespace RDBMS.FileManager
 	 * TODO testing of this class pending
 	 */
 
+	//TODO implement show databases also
+	//TODO drop index also
 	internal class SubQueryHandler
 	{
 		//TODO make sure consisitency in null and empty string in record object
@@ -55,6 +57,7 @@ namespace RDBMS.FileManager
 			if (DbManager == null)
 				DbManager = new DatabaseManager();
 			DbManager.DropDatabase(dbName);
+			DbManager = null;
 		}
 
 		public List<String> ShowTables()

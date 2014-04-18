@@ -89,6 +89,7 @@
     <Compile Include="Util\DisplayMessage.cs" />
     <Compile Include="Util\GetFilePath.cs" />
     <Compile Include="Util\Logger.cs" />
+    <Compile Include="Util\SampleQueries.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

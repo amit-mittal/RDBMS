@@ -41,6 +41,7 @@ namespace RDBMS.QueryManager
 					_messenger.Message("====================");
 
 					//TODO testing pending
+					//todo add index left
 					if (root.ChildNodes[0].Term.ToString() == "createDatabaseStmt")
 					{
 						CreateDatabase();
@@ -76,6 +77,18 @@ namespace RDBMS.QueryManager
 					else if (root.ChildNodes[0].Term.ToString() == "updateStmt")
 					{
 						UpdateRecordOfTable();
+					}
+					else if (root.ChildNodes[0].Term.ToString() == "deleteStmt")
+					{
+						DeleteRecordsFromTable();
+					}
+					else if (root.ChildNodes[0].Term.ToString() == "selectStmt")
+					{
+						SelectRecordsFromTable();
+					}
+					else if (root.ChildNodes[0].Term.ToString() == "createIndexStmt")
+					{
+						CreateIndexOnColumn();
 					}
 					else
 					{
@@ -162,8 +175,6 @@ namespace RDBMS.QueryManager
 				.ChildNodes[2].ChildNodes[0]
 				.Token.ValueString;
 
-			_messenger.Message(tableName);
-
 			foreach (var fieldNode in allFieldsNode.ChildNodes)
 			{
 				Column col;
@@ -210,6 +221,7 @@ namespace RDBMS.QueryManager
 			ParseTreeNode allFieldsNode = topNode.ChildNodes[3].ChildNodes[0];
 			ParseTreeNode allValuesNode = topNode.ChildNodes[4].ChildNodes[1];
 
+			List<String> colNames = new List<String>();
 			List<String> values = new List<String>();
 
 			if (allFieldsNode.ChildNodes.Count != allValuesNode.ChildNodes.Count)
@@ -219,26 +231,18 @@ namespace RDBMS.QueryManager
 				.ChildNodes[2].ChildNodes[0]
 				.Token.ValueString;
 
-			Table table = subQueryHandler.DescribeTable(tableName);
-
-			foreach (var column in table.Columns)
+			for (int i = 0; i < allFieldsNode.ChildNodes.Count; i++)
 			{
-				bool found = false;
-				for (int i = 0; i < allFieldsNode.ChildNodes.Count; i++)
-				{
-					String colName = allFieldsNode.ChildNodes[i].ChildNodes[0].Token.ValueString;
-					if (colName == column.Name)
-					{
-						found = true;
-						String value = allValuesNode.ChildNodes[i].Token.ValueString;
-						values.Add(value);
-					}
-				}
-				if (!found)
-					values.Add(null);
+				String colName = allFieldsNode.ChildNodes[i].ChildNodes[0].Token.ValueString;
+				String value = allValuesNode.ChildNodes[i].Token.ValueString;
+				
+				colNames.Add(colName);
+				values.Add(value);
 			}
-			
-			subQueryHandler.InsertRecordToTable(tableName, new Record(values));
+
+			Record record = subQueryHandler.GetRecordFromValues(tableName, colNames, values);
+
+			subQueryHandler.InsertRecordToTable(tableName, record);
 			_messenger.Message("Record Succesfully inserted");
 		}
 
@@ -250,23 +254,137 @@ namespace RDBMS.QueryManager
 					.ChildNodes[1].ChildNodes[0]
 					.Token.ValueString;
 
-			//todo get the record from assignments
+			List<String> colNames = new List<String>();
+			List<String> values = new List<String>();
 
 			ParseTreeNode allAssignments = topNode.ChildNodes[3];
+
+			foreach (var assignment in allAssignments.ChildNodes)
+			{
+				String colName = assignment.ChildNodes[0].ChildNodes[0].Token.ValueString;
+				String value = assignment.ChildNodes[2].Token.ValueString;
+
+				colNames.Add(colName);
+				values.Add(value);
+			}
+
+			Record record = subQueryHandler.GetRecordFromValues(tableName, colNames, values);
+			
 			if (topNode.ChildNodes[4].ChildNodes.Count > 1)
 			{
 				ParseTreeNode binExpr = topNode.ChildNodes[4].ChildNodes[1];
 
-				SolveWhereClause(tableName, binExpr);
+				Dictionary<int, Record> possibleRecords = SolveWhereClause(tableName, binExpr);
+				subQueryHandler.UpdateRecordToTable(tableName, record, possibleRecords);
 			}
 			else
 			{
-				subQueryHandler.UpdateRecordToTable(tableName, null, (Condition) null);
+				subQueryHandler.UpdateRecordToTable(tableName, record, (Condition) null);
 			}
 			
-
 			_messenger.Message("Record(s) successfully updated");
 		}
+
+		private void DeleteRecordsFromTable()
+		{
+			ParseTreeNode topNode = root.ChildNodes[0];
+
+			String tableName = topNode
+					.ChildNodes[2].ChildNodes[0]
+					.Token.ValueString;
+
+			if (topNode.ChildNodes[3].ChildNodes.Count > 1)//if where clause is there
+			{
+				ParseTreeNode binExpr = topNode.ChildNodes[3].ChildNodes[1];
+
+				Dictionary<int, Record> possibleRecords = SolveWhereClause(tableName, binExpr);
+				subQueryHandler.DeleteRecordsFromTable(tableName, possibleRecords);
+			}
+			else
+			{
+				subQueryHandler.DeleteRecordsFromTable(tableName, (Condition) null);
+			}
+
+			_messenger.Message("Record(s) successfully deleted");
+		}
+
+		private void SelectRecordsFromTable()
+		{
+			//todo implement joins
+			ParseTreeNode topNode = root.ChildNodes[0];
+
+			//Selecting the table
+			ParseTreeNode tableListNode = topNode
+				.ChildNodes[4].ChildNodes[1];
+			String tableName = tableListNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
+
+			//Selecting the columns
+			ParseTreeNode colList = topNode.ChildNodes[2].ChildNodes[0];
+			List<int> selectedColumns;
+			if (colList.ChildNodes.Count == 0)//'*' clause
+			{
+				selectedColumns = subQueryHandler.GetColumnIndicesFromName(tableName, new List<string>());
+			}
+			else
+			{
+				List<String> colNames = new List<string>();
+				Console.WriteLine(colList.ChildNodes.Count);
+				foreach (var colNameNode in colList.ChildNodes)
+				{
+					String colName = colNameNode.ChildNodes[0].ChildNodes[0].ChildNodes[0].Token.ValueString;
+					colNames.Add(colName);
+				}
+				selectedColumns = subQueryHandler.GetColumnIndicesFromName(tableName, colNames);
+			}
+
+			//todo Selecting the tables - IF DOING JOINS
+
+			//Selecting the records
+			Dictionary<int, Record> possibleRecords;
+			if (topNode.ChildNodes[5].ChildNodes.Count > 1)
+			{
+				ParseTreeNode binExpr = topNode.ChildNodes[5].ChildNodes[1];
+				possibleRecords = SolveWhereClause(tableName, binExpr);
+			}
+			else
+			{
+				possibleRecords = subQueryHandler.SelectRecordsFromTable(tableName, null);
+			}
+
+			//Dispaly the records in proper format
+			foreach (Record record in possibleRecords.Values)
+			{
+				List<String> fields = record.Fields;
+				String recAsString = "";
+				foreach (int index in selectedColumns)
+				{
+					recAsString += (fields[index] + " | ");
+				}
+				_messenger.Message(recAsString);
+			}
+		}
+
+		private void CreateIndexOnColumn()
+		{
+			ParseTreeNode topNode = root.ChildNodes[0];
+
+			String tableName = topNode
+					.ChildNodes[5].ChildNodes[0]
+					.Token.ValueString;
+
+			ParseTreeNode colList = topNode
+				.ChildNodes[6];
+			String colName = colList
+				.ChildNodes[0].ChildNodes[0].ChildNodes[0]
+				.Token.ValueString;
+
+			subQueryHandler.CreateIndex(tableName, colName);
+			_messenger.Message("Index Created");
+		}
+
+		#endregion
+
+		#region Helper Functions
 
 		/**
 		 * Evaluates WHERE for binary expressions
@@ -285,54 +403,14 @@ namespace RDBMS.QueryManager
 				Dictionary<int, Record> result1 = SolveWhereClause(tableName, binExpr.ChildNodes[0]);
 				Dictionary<int, Record> result2 = SolveWhereClause(tableName, binExpr.ChildNodes[2]);
 
-				//optimized query
-				if (result1.Count > result2.Count)
-				{
-					foreach (var pair in result2)
-					{
-						if(result1.ContainsKey(pair.Key) && result2.ContainsKey(pair.Key))
-							finalResult.Add(pair.Key, pair.Value);
-					}
-				}
-				else
-				{
-					foreach (var pair in result1)
-					{
-						if (result1.ContainsKey(pair.Key) && result2.ContainsKey(pair.Key))
-							finalResult.Add(pair.Key, pair.Value);
-					}
-				}
+				finalResult = TakeIntersection(result1, result2);
 			}
 			else if (opValue == "or")
 			{
 				Dictionary<int, Record> result1 = SolveWhereClause(tableName, binExpr.ChildNodes[0]);
 				Dictionary<int, Record> result2 = SolveWhereClause(tableName, binExpr.ChildNodes[2]);
 
-				//optimized query
-				if (result1.Count > result2.Count)
-				{
-					foreach (var pair in result1)
-					{
-						finalResult.Add(pair.Key, pair.Value);
-					}
-					foreach (var pair in result2)
-					{
-						if (!finalResult.ContainsKey(pair.Key))
-							finalResult.Add(pair.Key, pair.Value);
-					}
-				}
-				else
-				{
-					foreach (var pair in result2)
-					{
-						finalResult.Add(pair.Key, pair.Value);
-					}
-					foreach (var pair in result1)
-					{
-						if (!finalResult.ContainsKey(pair.Key))
-							finalResult.Add(pair.Key, pair.Value);
-					}
-				}
+				finalResult = TakeUnion(result1, result2);
 			}
 			else
 			{
@@ -347,10 +425,69 @@ namespace RDBMS.QueryManager
 			return finalResult;
 		}
 
-		#endregion
+		/**
+		 * Take union of both the dictionaries to result 
+		 * a final dictionary
+		 */
+		private Dictionary<int, Record> TakeUnion(Dictionary<int, Record> result1, Dictionary<int, Record> result2)
+		{
+			Dictionary<int, Record> finalResult = new Dictionary<int, Record>();
+			//optimized query
+			if (result1.Count > result2.Count)
+			{
+				foreach (var pair in result1)
+				{
+					finalResult.Add(pair.Key, pair.Value);
+				}
+				foreach (var pair in result2)
+				{
+					if (!finalResult.ContainsKey(pair.Key))
+						finalResult.Add(pair.Key, pair.Value);
+				}
+			}
+			else
+			{
+				foreach (var pair in result2)
+				{
+					finalResult.Add(pair.Key, pair.Value);
+				}
+				foreach (var pair in result1)
+				{
+					if (!finalResult.ContainsKey(pair.Key))
+						finalResult.Add(pair.Key, pair.Value);
+				}
+			}
 
-		#region Helper Functions
+			return finalResult;
+		}
 
+		/**
+		 * Take intersction of both the dictionaries to result 
+		 * a final dictionary
+		 */
+		private Dictionary<int, Record> TakeIntersection(Dictionary<int, Record> result1, Dictionary<int, Record> result2)
+		{
+			Dictionary<int, Record> finalResult = new Dictionary<int, Record>();
+			//optimized query
+			if (result1.Count > result2.Count)
+			{
+				foreach (var pair in result2)
+				{
+					if (result1.ContainsKey(pair.Key) && result2.ContainsKey(pair.Key))
+						finalResult.Add(pair.Key, pair.Value);
+				}
+			}
+			else
+			{
+				foreach (var pair in result1)
+				{
+					if (result1.ContainsKey(pair.Key) && result2.ContainsKey(pair.Key))
+						finalResult.Add(pair.Key, pair.Value);
+				}
+			}
+
+			return finalResult;
+		} 
 		
 		#endregion
 

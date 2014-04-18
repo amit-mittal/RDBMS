@@ -43,6 +43,8 @@ namespace RDBMS.DataStructure
 				Type = DataType.Int;
 			else if (type == "double")
 				Type = DataType.Double;
+			else
+			throw new Exception("Data Type not supported");
 		}
 
 		#endregion

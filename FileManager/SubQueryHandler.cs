@@ -99,11 +99,11 @@ namespace RDBMS.FileManager
 		/**
 		 * Add that column to index
 		 */
-
-		public void CreateIndex(String tableName, Column column)
+		public void CreateIndex(String tableName, String colName)
 		{
 			CheckIfDatabaseSelected();
 			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+			Column column = tableManager.table.GetColumnByName(colName);
 
 			//checking if index on it already exists
 			if (tableManager.table.CheckIfColumnIndexed(column))
@@ -265,6 +265,9 @@ namespace RDBMS.FileManager
 
 		#region Helper Functions
 
+		/**
+		 * Makes condition out from the given parameters
+		 */
 		public Condition GetCondition(String tableName, String colName, String op, String value)
 		{
 			CheckIfDatabaseSelected();
@@ -314,6 +317,81 @@ namespace RDBMS.FileManager
 			}
 
 			return null;
+		}
+
+		/**
+		 * Makes record compatible with tha table columns 
+		 * from the list of column names and values given
+		 */
+		public Record GetRecordFromValues(String tableName, List<String> colNames, List<String> values)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+			List<String> allColsValues = new List<string>();
+
+			foreach (var column in tableManager.table.Columns)
+			{
+				bool found = false;
+				for (int i = 0; i < colNames.Count; i++)
+				{
+					String colName = colNames[i];
+					if (colName == column.Name)
+					{
+						found = true;
+						String value = values[i];
+						allColsValues.Add(value);
+					}
+				}
+				if (!found)
+					allColsValues.Add(null);
+			}
+
+			//checking if some column specified left
+			foreach (var colName in colNames)
+			{
+				bool found = false;
+				foreach (var column in tableManager.table.Columns)
+				{
+					if (colName == column.Name)
+						found = true;
+				}
+				if (!found)
+					throw new Exception("Column(s) does not exist in the table specified");
+			}
+
+			return new Record(allColsValues);
+		}
+
+		/**
+		 * Returns list of column indices from list of column names list
+		 */
+		public List<int> GetColumnIndicesFromName(String tableName, List<String> colNames)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+			List<int> columnIndices = new List<int>();
+
+			if (colNames.Count == 0)
+			{
+				int size = tableManager.table.Columns.Count;
+				for (int i = 0; i < size; i++)
+					columnIndices.Add(i);
+			}
+			else
+			{
+				foreach (var colName in colNames)
+				{
+					Column col = tableManager.table.GetColumnByName(colName);
+					
+					int index = tableManager.table.GetColumnIndex(col);
+					if(index == -1)
+						throw new Exception("Some Column(s) does not exist in the table specified");
+					
+					columnIndices.Add(index);
+				}
+			}
+			
+			return columnIndices;
 		}
 
 		#endregion

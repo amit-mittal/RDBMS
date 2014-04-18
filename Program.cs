@@ -11,15 +11,29 @@ namespace RDBMS
 		private static void Main(string[] args)
 		{
 			var qh = new QueryHandler();
-			Console.Write("merasql> ");
-			String str = "UPDATE TABLE_1 SET " +
-						"COL_1='hello' , " +
-						"COL_2 = 5 " +
-						"WHERE " +
-						"COL_3 = 8 " +
-						"AND " +
-						"COL_4 = 'HEG'";
+
+			/*String str = "create database sample_data";
 			qh.SetQuery(str);
+
+			str = "use sample_data";
+			qh.SetQuery(str);
+
+			str = "create table table1(" +
+				"col1 char (100)," +
+				"col2 int (5)" +
+				")";
+			qh.SetQuery(str);*/
+
+			String str = "create index name_1 on table_1 col_1";
+			qh.SetQuery(str);
+/*
+			str = "insert into table1 (col1, col2) values ('first', 22) ";
+			qh.SetQuery(str);
+
+			str = "SELECT col2 FROM table1 " +
+						"WHERE " +
+						"COL1 = 'first' ";
+			qh.SetQuery(str);*/
 
 			//InitTests();
 			Console.ReadKey();

@@ -12,14 +12,13 @@ namespace RDBMS
 		{
 			var qh = new QueryHandler();
 			Console.Write("merasql> ");
-			String str = "INSERT INTO TABLE_1 (" +
-						"COL_1, " +
-						"COL_2" +
-						") " +
-						" VALUES ( " +
-						"5 , " +
-						"'10'" +
-						" ) ";
+			String str = "UPDATE TABLE_1 SET " +
+						"COL_1='hello' , " +
+						"COL_2 = 5 " +
+						"WHERE " +
+						"COL_3 = 8 " +
+						"AND " +
+						"COL_4 = 'HEG'";
 			qh.SetQuery(str);
 
 			//InitTests();

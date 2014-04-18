@@ -8,6 +8,7 @@ using RDBMS.Util;
 namespace RDBMS.QueryManager
 {
 	//TODO CHANGE GRAMMAR ACCORDING TO OURS
+	//TODO SEGREGATE THE METHODS PROPERLY
 	internal class QueryHandler
 	{
 		private DisplayMessage _messenger = new DisplayMessage();
@@ -74,7 +75,7 @@ namespace RDBMS.QueryManager
 					}
 					else if (root.ChildNodes[0].Term.ToString() == "updateStmt")
 					{
-						DropTable();
+						UpdateRecordOfTable();
 					}
 					else
 					{
@@ -243,10 +244,114 @@ namespace RDBMS.QueryManager
 
 		private void UpdateRecordOfTable()
 		{
+			ParseTreeNode topNode = root.ChildNodes[0];
 			
-			_messenger.Message("Record(s) succesfuuly updated");
+			String tableName = topNode
+					.ChildNodes[1].ChildNodes[0]
+					.Token.ValueString;
+
+			//todo get the record from assignments
+
+			ParseTreeNode allAssignments = topNode.ChildNodes[3];
+			if (topNode.ChildNodes[4].ChildNodes.Count > 1)
+			{
+				ParseTreeNode binExpr = topNode.ChildNodes[4].ChildNodes[1];
+
+				SolveWhereClause(tableName, binExpr);
+			}
+			else
+			{
+				subQueryHandler.UpdateRecordToTable(tableName, null, (Condition) null);
+			}
+			
+
+			_messenger.Message("Record(s) successfully updated");
 		}
 
+		/**
+		 * Evaluates WHERE for binary expressions
+		 * Binary Expression should be of form
+		 *		colName
+		 *		conditionType
+		 *		Value
+		 */
+		private Dictionary<int, Record> SolveWhereClause(String tableName, ParseTreeNode binExpr)
+		{
+			Dictionary<int, Record> finalResult = new Dictionary<int, Record>();
+			String opValue = binExpr.ChildNodes[1].ChildNodes[0].Token.ValueString;
+
+			if (opValue == "and")
+			{
+				Dictionary<int, Record> result1 = SolveWhereClause(tableName, binExpr.ChildNodes[0]);
+				Dictionary<int, Record> result2 = SolveWhereClause(tableName, binExpr.ChildNodes[2]);
+
+				//optimized query
+				if (result1.Count > result2.Count)
+				{
+					foreach (var pair in result2)
+					{
+						if(result1.ContainsKey(pair.Key) && result2.ContainsKey(pair.Key))
+							finalResult.Add(pair.Key, pair.Value);
+					}
+				}
+				else
+				{
+					foreach (var pair in result1)
+					{
+						if (result1.ContainsKey(pair.Key) && result2.ContainsKey(pair.Key))
+							finalResult.Add(pair.Key, pair.Value);
+					}
+				}
+			}
+			else if (opValue == "or")
+			{
+				Dictionary<int, Record> result1 = SolveWhereClause(tableName, binExpr.ChildNodes[0]);
+				Dictionary<int, Record> result2 = SolveWhereClause(tableName, binExpr.ChildNodes[2]);
+
+				//optimized query
+				if (result1.Count > result2.Count)
+				{
+					foreach (var pair in result1)
+					{
+						finalResult.Add(pair.Key, pair.Value);
+					}
+					foreach (var pair in result2)
+					{
+						if (!finalResult.ContainsKey(pair.Key))
+							finalResult.Add(pair.Key, pair.Value);
+					}
+				}
+				else
+				{
+					foreach (var pair in result2)
+					{
+						finalResult.Add(pair.Key, pair.Value);
+					}
+					foreach (var pair in result1)
+					{
+						if (!finalResult.ContainsKey(pair.Key))
+							finalResult.Add(pair.Key, pair.Value);
+					}
+				}
+			}
+			else
+			{
+				//Solving the Base Expression
+				String v1 = binExpr.ChildNodes[0].ChildNodes[0].Token.ValueString;
+				String v2 = binExpr.ChildNodes[2].Token.ValueString;
+
+				Condition condition = subQueryHandler.GetCondition(tableName, v1, opValue, v2);
+				finalResult = subQueryHandler.SelectRecordsFromTable(tableName, condition);
+			}
+
+			return finalResult;
+		}
+
+		#endregion
+
+		#region Helper Functions
+
+		
 		#endregion
 
 	}

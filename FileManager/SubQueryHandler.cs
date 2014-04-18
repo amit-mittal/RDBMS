@@ -131,7 +131,6 @@ namespace RDBMS.FileManager
 		 * 
 		 * If condition null that means deleting all the records
 		 */
-
 		public void DeleteRecordsFromTable(String tableName, Condition condition)
 		{
 			CheckIfDatabaseSelected();
@@ -149,6 +148,15 @@ namespace RDBMS.FileManager
 			tableManager.DeleteRecordsFromIndices(records);
 		}
 
+		public void DeleteRecordsFromTable(String tableName, Dictionary<int, Record> records)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+
+			tableManager.DeleteRecords(records);
+			tableManager.DeleteRecordsFromIndices(records);
+		}
+
 		/**
 		 * @param name="condition" updates records which satisfy the condition
 		 * if null that means update all
@@ -159,7 +167,6 @@ namespace RDBMS.FileManager
 		 * Check for error if there in updatedColumns
 		 * If no error combine with old records to get new and updated records
 		 */
-
 		public void UpdateRecordToTable(String tableName, Record updatedColumns, Condition condition)
 		{
 			CheckIfDatabaseSelected();
@@ -173,6 +180,39 @@ namespace RDBMS.FileManager
 			}
 
 			Dictionary<int, Record> oldRecords = SelectRecordsFromTable(tableName, condition);
+			Dictionary<int, Record> newRecords = new Dictionary<int, Record>(oldRecords);
+
+			for (int i = 0; i < updatedColumns.Fields.Count; i++) //updating new records
+			{
+				String value = updatedColumns.Fields[i];
+				if (value != null)
+				{
+					foreach (KeyValuePair<int, Record> pair in newRecords)
+					{
+						pair.Value.Fields[i] = value;
+					}
+				}
+			}
+
+			tableManager.UpdateRecord(newRecords);
+			tableManager.UpdateRecordToIndices(oldRecords, newRecords);
+		}
+
+		/**
+		 * @param name="updatedColumns" has those entries set which have been
+		 * changed and rest of the entries are null
+		 * 
+		 * Check for error if there in updatedColumns
+		 * If no error combine with old records to get new and updated records
+		 */
+		public void UpdateRecordToTable(String tableName, Record updatedColumns, Dictionary<int, Record> oldRecords)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+
+			//checking for errors in objects
+			tableManager.CheckRecord(updatedColumns);
+			
 			Dictionary<int, Record> newRecords = new Dictionary<int, Record>(oldRecords);
 
 			for (int i = 0; i < updatedColumns.Fields.Count; i++) //updating new records
@@ -219,6 +259,61 @@ namespace RDBMS.FileManager
 			}
 
 			return records;
+		}
+
+		#endregion
+
+		#region Helper Functions
+
+		public Condition GetCondition(String tableName, String colName, String op, String value)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+
+			Column col = tableManager.table.GetColumnByName(colName);
+			if (col == null)
+				throw new Exception("No such column exists");
+
+			Condition.ConditionType conditionType;
+			if (op == "=")
+				conditionType = Condition.ConditionType.Equal;
+			else if (op == "<")
+				conditionType = Condition.ConditionType.Less;
+			else if (op == ">")
+				conditionType = Condition.ConditionType.Greater;
+			else if (op == "<=")
+				conditionType = Condition.ConditionType.LessEqual;
+			else if (op == ">=")
+				conditionType = Condition.ConditionType.GreaterEqual;
+			else
+				throw new Exception("Operation " + op + " not supported");
+
+			if (col.Type == Column.DataType.Int)
+			{
+				int valueInt;
+				if(int.TryParse(value, out valueInt))
+					return new Condition(col, conditionType, value);
+			}
+			else if (col.Type == Column.DataType.Double)
+			{
+				double valueDouble;
+				if (double.TryParse(value, out valueDouble))
+					return new Condition(col, conditionType, value);
+			}
+			else if (col.Type == Column.DataType.Char)
+			{
+				if(conditionType != Condition.ConditionType.Equal)
+					throw new Exception("These type of columns only support equality conditions");
+
+				if (value != null)
+					return new Condition(col, conditionType, value);
+			}
+			else
+			{
+				throw new Exception("Condition value is not valid");
+			}
+
+			return null;
 		}
 
 		#endregion

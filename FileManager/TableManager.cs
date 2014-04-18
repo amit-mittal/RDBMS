@@ -106,11 +106,14 @@ namespace RDBMS.FileManager
 			Converter.ObjectToFile(table, conf);
 		}
 
+		#endregion
+
+		#region Index Methods
+
 		/**
 		 * Adding index to particular column
 		 * if some records were already there
 		 */
-
 		public void AddIndex(Column index)
 		{
 			//making the index file
@@ -182,6 +185,22 @@ namespace RDBMS.FileManager
 
 			//adding entry to list in table and update back to file also
 			table.IndexColumns.Add(index);
+			UpdateTableToFile();
+		}
+
+		/**
+		 * Adding index to particular column
+		 * if some records were already there
+		 * todo testing pending
+		 */
+		public void DropIndex(Column index)
+		{
+			//making the index file
+			String indexFile = GetFilePath.TableColumnIndex(table.DbName, table.Name, index.Name);
+			storageManager.DropFile(indexFile);
+
+			//removing entry from list in table and update back to file also
+			table.IndexColumns.Remove(index);
 			UpdateTableToFile();
 		}
 

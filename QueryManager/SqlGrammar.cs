@@ -169,7 +169,7 @@ namespace RDBMS.QueryManager
 			describeTableStmt.Rule = DESCRIBE + Id;
 
 			//Create table
-			createTableStmt.Rule = CREATE + TABLE + Id + "(" + fieldDefList + ")" + constraintListOpt;
+			createTableStmt.Rule = CREATE + TABLE + Id + "(" + fieldDefList + ")"/* + constraintListOpt*/;
 			fieldDefList.Rule = MakePlusRule(fieldDefList, comma, fieldDef);
 			fieldDef.Rule = Id + typeName + typeParamsOpt + nullSpecOpt;
 			nullSpecOpt.Rule = NULL | NOT + NULL | Empty;
@@ -187,7 +187,7 @@ namespace RDBMS.QueryManager
 			idlist.Rule = MakePlusRule(idlist, comma, Id);
 
 			//Create Index
-			createIndexStmt.Rule = CREATE + uniqueOpt + INDEX + Id + ON + Id + orderList + withClauseOpt;
+			createIndexStmt.Rule = CREATE + uniqueOpt + INDEX + Id + ON + Id/* + orderList + withClauseOpt*/;
 			uniqueOpt.Rule = Empty | UNIQUE;
 			orderList.Rule = MakePlusRule(orderList, comma, orderMember);
 			orderMember.Rule = Id + orderDirOpt;

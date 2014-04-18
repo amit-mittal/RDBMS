@@ -24,7 +24,7 @@ namespace RDBMS
 				")";
 			qh.SetQuery(str);*/
 
-			String str = "create index name_1 on table_1 col_1";
+			String str = "create index name_1 on table_1";
 			qh.SetQuery(str);
 /*
 			str = "insert into table1 (col1, col2) values ('first', 22) ";

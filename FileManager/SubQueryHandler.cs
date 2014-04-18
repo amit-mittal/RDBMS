@@ -13,6 +13,7 @@ namespace RDBMS.FileManager
 
 	//TODO implement show databases also
 	//TODO drop index also
+	//todo implement primary key
 	internal class SubQueryHandler
 	{
 		//TODO make sure consisitency in null and empty string in record object
@@ -113,10 +114,25 @@ namespace RDBMS.FileManager
 		}
 
 		/**
+		 * Drop index on column specified
+		 */
+		public void DropIndex(String tableName, String colName)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+			Column column = tableManager.table.GetColumnByName(colName);
+
+			//checking if index on it does not exist
+			if (!tableManager.table.CheckIfColumnIndexed(column))
+				throw new Exception("Column is not indexed");
+
+			tableManager.DropIndex(column);
+		}
+
+		/**
 		 * After checking for error if any, inserts the record into
 		 * the table and index file
 		 */
-
 		public void InsertRecordToTable(String tableName, Record record)
 		{
 			CheckIfDatabaseSelected();

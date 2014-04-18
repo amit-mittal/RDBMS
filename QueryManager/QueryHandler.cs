@@ -90,6 +90,10 @@ namespace RDBMS.QueryManager
 					{
 						CreateIndexOnColumn();
 					}
+					else if (root.ChildNodes[0].Term.ToString() == "dropIndexStmt")
+					{
+						DropIndexOnColumn();
+					}
 					else
 					{
 						_messenger.Message("Some error in alloting query");
@@ -108,6 +112,10 @@ namespace RDBMS.QueryManager
 
 		#region Q U E R I E S
 
+		/**
+		 * Query:
+		 * CREATE DATABASE database_name
+		 */
 		private void CreateDatabase()
 		{
 			String dbName = root
@@ -118,6 +126,10 @@ namespace RDBMS.QueryManager
 			_messenger.Message("Database Created");
 		}
 
+		/**
+		 * Query:
+		 * DROP DATABASE database_name
+		 */
 		private void DropDatabase()
 		{
 			String dbName = root
@@ -128,6 +140,10 @@ namespace RDBMS.QueryManager
 			_messenger.Message("Database Dropped");
 		}
 
+		/**
+		 * Query:
+		 * USE database_name
+		 */
 		private void ChangeDatabase()
 		{
 			String dbName = root
@@ -138,6 +154,10 @@ namespace RDBMS.QueryManager
 			_messenger.Message("Database Changed");
 		}
 
+		/**
+		 * Query:
+		 * SHOW TABLES
+		 */
 		private void ShowTables()
 		{
 			List<String> tableNames = subQueryHandler.ShowTables();
@@ -146,6 +166,10 @@ namespace RDBMS.QueryManager
 				_messenger.Message(tableName);
 		}
 
+		/**
+		 * Query:
+		 * DESCRIBE table_name
+		 */
 		private void DescribeTable()
 		{
 			String tableName = root
@@ -165,6 +189,13 @@ namespace RDBMS.QueryManager
 				_messenger.Message(index.Name + "\t" + index.Type + "\t" + index.Length);
 		}
 
+		/**
+		 * Query:
+		 * CREATE TABLE table_name(
+		 *		col_name_1 col_1_type [(col_1_len)],
+		 *		col_name_2 col_2_type [(col_2_len)]
+		 * )
+		 */
 		private void CreateTable()
 		{
 			ParseTreeNode topNode = root.ChildNodes[0];
@@ -205,6 +236,10 @@ namespace RDBMS.QueryManager
 			_messenger.Message("Table Successfully Created");
 		}
 
+		/**
+		 * Query:
+		 * DROP TABLE table_name
+		 */
 		private void DropTable()
 		{
 			String tableName = root
@@ -215,6 +250,13 @@ namespace RDBMS.QueryManager
 			_messenger.Message("Table Dropped");
 		}
 
+		/**
+		 * Query:
+		 * INSERT INTO table_name 
+		 * (col_1, col_2) 
+		 * VALUES 
+		 * (col_1_val, col_2_val)
+		 */
 		private void InsertRecordIntoTable()
 		{
 			ParseTreeNode topNode = root.ChildNodes[0];
@@ -246,6 +288,12 @@ namespace RDBMS.QueryManager
 			_messenger.Message("Record Succesfully inserted");
 		}
 
+		/**
+		 * Query:
+		 * UPDATE table_name 
+		 * SET col_1 = val_1, col_2 = val_2
+		 * [WHERE] col_3 = val_3 AND col_4 = val_4
+		 */
 		private void UpdateRecordOfTable()
 		{
 			ParseTreeNode topNode = root.ChildNodes[0];
@@ -285,6 +333,11 @@ namespace RDBMS.QueryManager
 			_messenger.Message("Record(s) successfully updated");
 		}
 
+		/**
+		 * Query:
+		 * DELETE FROM table_name 
+		 * [WHERE] col_3 = val_3 AND col_4 = val_4
+		 */
 		private void DeleteRecordsFromTable()
 		{
 			ParseTreeNode topNode = root.ChildNodes[0];
@@ -308,6 +361,12 @@ namespace RDBMS.QueryManager
 			_messenger.Message("Record(s) successfully deleted");
 		}
 
+		/**
+		 * Query:
+		 * SELECT [*] [col_1, col_2]
+		 * FROM table_1 
+		 * [WHERE] col_3 = val_3 AND col_4 = val_4
+		 */
 		private void SelectRecordsFromTable()
 		{
 			//todo implement joins
@@ -364,6 +423,10 @@ namespace RDBMS.QueryManager
 			}
 		}
 
+		/**
+		 * Query:
+		 * CREATE INDEX column_name ON table_name
+		 */
 		private void CreateIndexOnColumn()
 		{
 			ParseTreeNode topNode = root.ChildNodes[0];
@@ -372,14 +435,32 @@ namespace RDBMS.QueryManager
 					.ChildNodes[5].ChildNodes[0]
 					.Token.ValueString;
 
-			ParseTreeNode colList = topNode
-				.ChildNodes[6];
-			String colName = colList
-				.ChildNodes[0].ChildNodes[0].ChildNodes[0]
-				.Token.ValueString;
+			String colName = topNode
+					.ChildNodes[3].ChildNodes[0]
+					.Token.ValueString;
 
 			subQueryHandler.CreateIndex(tableName, colName);
 			_messenger.Message("Index Created");
+		}
+
+		/**
+		 * Query:
+		 * DROP INDEX column_name ON table_name
+		 */
+		private void DropIndexOnColumn()
+		{
+			ParseTreeNode topNode = root.ChildNodes[0];
+
+			String tableName = topNode
+					.ChildNodes[4].ChildNodes[0]
+					.Token.ValueString;
+
+			String colName = topNode
+					.ChildNodes[2].ChildNodes[0]
+					.Token.ValueString;
+
+			subQueryHandler.DropIndex(tableName, colName);
+			_messenger.Message("Index Dropped");
 		}
 
 		#endregion

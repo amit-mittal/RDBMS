@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using RDBMS.DataStructure;
 using RDBMS.QueryManager;
 using RDBMS.Testing;
 using RDBMS.Util;
@@ -9,13 +11,13 @@ namespace RDBMS
 	{
 		private static void Main(string[] args)
 		{
-			var qh = new QueryHandler();
+			/*var qh = new QueryHandler();
 			String str = "SELECT * FROM table_1 " +
 						"WHERE ((col_2 = 'hello world') AND (col_1 = 13)) " +
 						"ORDER BY col_1 asc";
 			qh.SetQuery(str);
 			//do the work here
-
+			*/
 			InitTests();
 			Console.ReadKey();
 		}

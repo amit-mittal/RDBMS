@@ -12,7 +12,7 @@ namespace RDBMS.FileManager
 	 * data accordingly or throws exception
 	 */
 
-	//TODO implement primary key
+	//TODO implement primary key - change insert method, update
 	internal class SubQueryHandler
 	{
 		//TODO make sure consisitency in null and empty string in record object
@@ -113,6 +113,28 @@ namespace RDBMS.FileManager
 		}
 
 		/**
+		 * Adds primary key to table
+		 */
+		public void CreatePrimaryKey(String tableName, String colName)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+			Column column = tableManager.table.GetColumnByName(colName);
+
+			Dictionary<int, Record> allRecords = SelectRecordsFromTable(tableName, null);
+			if(allRecords.Count > 0)
+				throw new Exception("Primary Key can be added only when table is empty");
+
+			//checking if primary key already exists
+			if (tableManager.table.PrimaryKey != null)
+				throw new Exception("Table already contains a primary key");
+			if (tableManager.table.CheckIfColumnIndexed(column))
+				throw new Exception("Column already indexed - first remove it");
+
+			tableManager.AddPrimaryKey(column);
+		}
+
+		/**
 		 * Drop index on column specified
 		 */
 		public void DropIndex(String tableName, String colName)
@@ -121,11 +143,29 @@ namespace RDBMS.FileManager
 			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
 			Column column = tableManager.table.GetColumnByName(colName);
 
+			if(column.Name == tableManager.table.PrimaryKey.Name)
+				throw new Exception("Column is primary key so cant drop index");
+
 			//checking if index on it does not exist
 			if (!tableManager.table.CheckIfColumnIndexed(column))
 				throw new Exception("Column is not indexed");
 
 			tableManager.DropIndex(column);
+		}
+
+		/**
+		 * Drops primary key of the table
+		 */
+		public void DropPrimaryKey(String tableName)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+
+			//checking if index on it does not exist
+			if (tableManager.table.PrimaryKey == null)
+				throw new Exception("Tables does not contain primary key");
+
+			tableManager.DropPrimaryKey();
 		}
 
 		/**
@@ -137,6 +177,22 @@ namespace RDBMS.FileManager
 			CheckIfDatabaseSelected();
 			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
 			tableManager.CheckRecord(record); //checks for any error in the record
+			if (tableManager.table.PrimaryKey != null)
+			{
+				Column pKey = tableManager.table.PrimaryKey;
+				int pKeyIndex = tableManager.table.GetColumnIndex(pKey);
+				String pKeyVal = record.Fields[pKeyIndex];
+				
+				//checking if record null
+				if(pKeyVal == null)
+					throw new Exception("Primary Key Value can't be null");
+				
+				//check for duplicacy
+				Dictionary<int, Record> records = SelectRecordsFromTable(tableName, 
+					new Condition(pKey, Condition.ConditionType.Equal, pKeyVal));
+				if(records.Count > 0)
+					throw new Exception("Primary Key Value already exists");
+			}
 			int address = tableManager.InsertRecord(record);
 			tableManager.InsertRecordToIndices(record, address);
 		}
@@ -195,6 +251,16 @@ namespace RDBMS.FileManager
 			}
 
 			Dictionary<int, Record> oldRecords = SelectRecordsFromTable(tableName, condition);
+			if (tableManager.table.PrimaryKey != null)
+			{
+				Column pKey = tableManager.table.PrimaryKey;
+				int pKeyIndex = tableManager.table.GetColumnIndex(pKey);
+				String pKeyVal = updatedColumns.Fields[pKeyIndex];
+
+				//checking if more than 1 record will get changed
+				if(oldRecords.Count > 1 && pKeyVal != null)
+					throw new Exception("More than 1 record satisfies condition");
+			}
 			Dictionary<int, Record> newRecords = new Dictionary<int, Record>(oldRecords);
 
 			for (int i = 0; i < updatedColumns.Fields.Count; i++) //updating new records
@@ -227,6 +293,17 @@ namespace RDBMS.FileManager
 
 			//checking for errors in objects
 			tableManager.CheckRecord(updatedColumns);
+
+			if (tableManager.table.PrimaryKey != null)
+			{
+				Column pKey = tableManager.table.PrimaryKey;
+				int pKeyIndex = tableManager.table.GetColumnIndex(pKey);
+				String pKeyVal = updatedColumns.Fields[pKeyIndex];
+
+				//checking if more than 1 record will get changed
+				if (oldRecords.Count > 1 && pKeyVal != null)
+					throw new Exception("More than 1 record satisfies condition");
+			}
 			
 			Dictionary<int, Record> newRecords = new Dictionary<int, Record>(oldRecords);
 
@@ -249,7 +326,6 @@ namespace RDBMS.FileManager
 		/**
 		 * @returns Dictionart<Address, Record> accordingly using the index or linearly
 		 */
-
 		public Dictionary<int, Record> SelectRecordsFromTable(String tableName, Condition condition)
 		{
 			CheckIfDatabaseSelected();

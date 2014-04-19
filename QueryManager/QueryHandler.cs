@@ -99,6 +99,14 @@ namespace RDBMS.QueryManager
 					{
 						DropIndexOnColumn();
 					}
+					else if (root.ChildNodes[0].Term.ToString() == "addPrimaryKeyStmt")
+					{
+						CreatePrimaryKey();
+					}
+					else if (root.ChildNodes[0].Term.ToString() == "dropPrimaryKeyStmt")
+					{
+						DropPrimaryKey();
+					}
 					else
 					{
 						_messenger.Message("Some error in alloting query");
@@ -537,6 +545,42 @@ namespace RDBMS.QueryManager
 
 			subQueryHandler.CreateIndex(tableName, colName);
 			_messenger.Message("Index Created");
+		}
+
+		/**
+		 * Query:
+		 * ADD PRIMARY KEY column_name ON table_name
+		 */
+		private void CreatePrimaryKey()
+		{
+			ParseTreeNode topNode = root.ChildNodes[0];
+
+			String tableName = topNode
+					.ChildNodes[5].ChildNodes[0]
+					.Token.ValueString;
+
+			String colName = topNode
+					.ChildNodes[3].ChildNodes[0]
+					.Token.ValueString;
+
+			subQueryHandler.CreatePrimaryKey(tableName, colName);
+			_messenger.Message("Primary Key Created");
+		}
+
+		/**
+		 * Query:
+		 * DROP PRIMARY KEY ON table_name
+		 */
+		private void DropPrimaryKey()
+		{
+			ParseTreeNode topNode = root.ChildNodes[0];
+
+			String tableName = topNode
+					.ChildNodes[4].ChildNodes[0]
+					.Token.ValueString;
+
+			subQueryHandler.DropPrimaryKey(tableName);
+			_messenger.Message("Primary Key Dropped");
 		}
 
 		/**

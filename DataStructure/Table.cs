@@ -11,7 +11,7 @@ namespace RDBMS.DataStructure
 		public String Name;
 		public List<Column> Columns;
 		public List<Column> IndexColumns;
-		//TODO: Also add primary key later
+		public Column PrimaryKey;
 
 		#region Constructors
 
@@ -21,6 +21,16 @@ namespace RDBMS.DataStructure
 			Name = name;
 			Columns = columns;
 			IndexColumns = indexColumns;
+			PrimaryKey = null;
+		}
+
+		public Table(String dbName, String name, List<Column> columns, List<Column> indexColumns, Column primaryKey)
+		{
+			DbName = dbName;
+			Name = name;
+			Columns = columns;
+			IndexColumns = indexColumns;
+			PrimaryKey = primaryKey;
 		}
 
 		#endregion
@@ -87,7 +97,7 @@ namespace RDBMS.DataStructure
 				if (column.Name == colName)
 					return column;
 			}
-			return null;
+			throw new Exception("Column does not exist");
 		}
 
 		/**

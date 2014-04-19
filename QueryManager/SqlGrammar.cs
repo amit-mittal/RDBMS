@@ -80,6 +80,8 @@ namespace RDBMS.QueryManager
 			var binJoinExpr = new NonTerminal("binJoinExpr");
 			var termJoin = new NonTerminal("termJoin");
 			var havingJoinClauseOpt = new NonTerminal("havingJoinClauseOpt");
+			var addPrimaryKeyStmt = new NonTerminal("addPrimaryKeyStmt");
+			var dropPrimaryKeyStmt = new NonTerminal("dropPrimaryKeyStmt");
 
 			var Id = new NonTerminal("Id");
 			var stmt = new NonTerminal("stmt");
@@ -167,6 +169,7 @@ namespace RDBMS.QueryManager
 						| createDatabaseStmt | dropDatabaseStmt | useDatabaseStmt
 						| showTablesStmt | describeTableStmt
 						| selectJoinStmt | showDatabasesStmt
+						| addPrimaryKeyStmt | dropPrimaryKeyStmt
 						| "GO";
 			//Create database
 			createDatabaseStmt.Rule = CREATE + DATABASE + Id;
@@ -185,6 +188,12 @@ namespace RDBMS.QueryManager
 
 			//Describe table
 			describeTableStmt.Rule = DESCRIBE + Id;
+
+			//Add primary key
+			addPrimaryKeyStmt.Rule = ADD + PRIMARY + KEY + Id + ON + Id;
+
+			//Drop primary key
+			dropPrimaryKeyStmt.Rule = DROP + PRIMARY + KEY + ON + Id;
 
 			//Select join stmt
 			selectJoinStmt.Rule = SELECT + selRestrOpt + columnJoinItemList + fromJoinClauseOpt + whereJoinClauseOpt + 

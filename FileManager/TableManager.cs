@@ -189,8 +189,19 @@ namespace RDBMS.FileManager
 		}
 
 		/**
-		 * Adding index to particular column
+		 * Adding primary key to particular column
 		 * if some records were already there
+		 * todo test pending
+		 */
+		public void AddPrimaryKey(Column pKey)
+		{
+			AddIndex(pKey);
+			table.PrimaryKey = pKey;
+			UpdateTableToFile();
+		}
+
+		/**
+		 * Drop index from a particular column
 		 */
 		public void DropIndex(Column index)
 		{
@@ -200,6 +211,16 @@ namespace RDBMS.FileManager
 
 			//removing entry from list in table and update back to file also
 			table.IndexColumns.Remove(index);
+			UpdateTableToFile();
+		}
+
+		/**
+		 * Drop primary key of the table
+		 */
+		public void DropPrimaryKey()
+		{
+			DropIndex(table.PrimaryKey);
+			table.PrimaryKey = null;
 			UpdateTableToFile();
 		}
 
@@ -453,7 +474,6 @@ namespace RDBMS.FileManager
 		/**
 		 * Gets the dictionary containing the address => updated record
 		 */
-
 		public void UpdateRecordToIndices(Dictionary<int, Record> oldRecords, Dictionary<int, Record> updatedRecords)
 		{
 			DeleteRecordsFromIndices(oldRecords);
@@ -490,7 +510,6 @@ namespace RDBMS.FileManager
 		 * Takes dictionary containing the address => to be deleted record
 		 * And deletes that particular column value from the index path
 		 */
-
 		public void DeleteRecordsFromIndices(Dictionary<int, Record> uselessRecords)
 		{
 			foreach (Column indexColumn in table.IndexColumns)

@@ -7,12 +7,12 @@ namespace RDBMS
 {
 	internal class Program
 	{
-		//TODO Change to form application
 		private static void Main(string[] args)
 		{
 			var qh = new QueryHandler();
-			String str = "SELECT col_1 OF t1, col_2 OF t2 FROM t1 OF table_1, t2 OF table_2 " +
-						"WHERE ((col_3 OF t1 = 3) AND (col_4 OF t1 = val_4 OF t2))";
+			String str = "SELECT * FROM table_1 " +
+						"WHERE ((col_2 = 'hello world') AND (col_1 = 13)) " +
+						"ORDER BY col_1 asc";
 			qh.SetQuery(str);
 			//do the work here
 

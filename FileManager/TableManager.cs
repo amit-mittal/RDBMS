@@ -137,7 +137,7 @@ namespace RDBMS.FileManager
 						Index<int> idx = new Index<int>(int.Parse(s), keyValuePair.Key);
 						intbptree.Add(idx, keyValuePair.Key);
 					}
-					//TODO not inserting empty or null values as of now
+					//BUG not inserting empty or null values as of now
 					/*else
 					{
 						Index<int> idx = new Index<int>(Constants.NullAsInt, keyValuePair.Key);
@@ -191,7 +191,6 @@ namespace RDBMS.FileManager
 		/**
 		 * Adding index to particular column
 		 * if some records were already there
-		 * todo testing pending
 		 */
 		public void DropIndex(Column index)
 		{
@@ -309,7 +308,7 @@ namespace RDBMS.FileManager
 			bitmapFs.Close();
 
 			//traversing the whole file
-			int NumRecords = Constants.MaxSelectRecords; //TODO use this if read more than a chunk
+			int NumRecords = Constants.MaxSelectRecords; //BUG use this if read more than a chunk
 			for (int offset = storageManager.HeaderSize; offset < endOfFile; offset += recordSize)
 			{
 				if (!bitmapSet.Contains(offset))
@@ -424,7 +423,7 @@ namespace RDBMS.FileManager
 						new Index<String>(condition.Value, int.MaxValue));
 				else
 					throw new Exception("This type of condition for strings is not supported");
-				//TODO not implementing less than greater than for strings
+				//BUG not implementing less than greater than for strings
 
 				//initialized the selected addresses list
 				foreach (KeyValuePair<Index<String>, int> pair in range)

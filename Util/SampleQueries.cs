@@ -40,7 +40,13 @@ namespace RDBMS.Util
 											"WHERE col_1 = 13";
 
 		public static String SelectRecord = "SELECT * FROM table_1 " +
-											"WHERE ((col_2 = 'hello world') AND (col_1 = 13))"
+											"WHERE ((col_2 = 'hello world') AND (col_1 >= 10)) " +
+											"ORDER BY col_1 DESC";
+
+		public static String MultipleSelect = "SELECT col_1 OF t1, col_2 OF t2 " +
+											"FROM t1 OF table_1, t2 OF table_2 " +
+											"WHERE ((col_3 OF t1 = 3) " +
+											"AND (col_4 OF t1 = val_4 OF t2))";
 
 
 		//INDEX QUERIES

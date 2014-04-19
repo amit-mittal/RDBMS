@@ -10,11 +10,9 @@ namespace RDBMS.FileManager
 	 * Handles all the smaller queries
 	 * coming from the top layer and returns
 	 * data accordingly or throws exception
-	 * TODO testing of this class pending
 	 */
 
-	//TODO implement show databases also
-	//todo implement primary key
+	//TODO implement primary key
 	internal class SubQueryHandler
 	{
 		//TODO make sure consisitency in null and empty string in record object
@@ -425,6 +423,21 @@ namespace RDBMS.FileManager
 			}
 			
 			return columnIndices;
+		}
+
+		/**
+		 * Returns the column list in the order of the table columns
+		 */
+		public List<String> SortColumnsInOrder(String tableName, List<int> columnIndices)
+		{
+			columnIndices.Sort();
+
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+
+			List<String> newList = new List<string>();
+			foreach (var i in columnIndices)
+				newList.Add(tableManager.table.GetColumn(i).Name);
+			return newList;
 		}
 
 		#endregion

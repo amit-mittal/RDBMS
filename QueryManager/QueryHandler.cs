@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Irony.Parsing;
 using RDBMS.DataStructure;
@@ -7,11 +8,6 @@ using RDBMS.Util;
 
 namespace RDBMS.QueryManager
 {
-	//TODO CHANGE GRAMMAR ACCORDING TO OURS
-	//TODO SEGREGATE THE METHODS PROPERLY
-	//TODO implement order by also
-	//todo can implement distinct also
-	//TODO have added () support , check if working correct
 	internal class QueryHandler
 	{
 		private DisplayMessage _messenger = new DisplayMessage();
@@ -43,7 +39,6 @@ namespace RDBMS.QueryManager
 					parser.PrintNode(root, 0);
 					_messenger.Message("====================");
 
-					//TODO testing pending
 					if (root.ChildNodes[0].Term.ToString() == "createDatabaseStmt")
 					{
 						CreateDatabase();
@@ -388,6 +383,7 @@ namespace RDBMS.QueryManager
 		 * SELECT [*] [col_1, col_2]
 		 * FROM table_1 
 		 * [WHERE] ((col_3 = val_3) AND (col_4 = val_4))
+		 * [ORDER BY] col_name [ASC|DESC]
 		 */
 		private void SelectRecordsFromTable()
 		{
@@ -397,6 +393,7 @@ namespace RDBMS.QueryManager
 			ParseTreeNode tableListNode = topNode
 				.ChildNodes[4].ChildNodes[1];
 			String tableName = tableListNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
+
 
 			//Selecting the columns
 			ParseTreeNode colList = topNode.ChildNodes[2].ChildNodes[0];
@@ -416,6 +413,7 @@ namespace RDBMS.QueryManager
 				selectedColumns = subQueryHandler.GetColumnIndicesFromName(tableName, colNames);
 			}
 
+
 			//Selecting the records
 			Dictionary<int, Record> possibleRecords;
 			if (topNode.ChildNodes[5].ChildNodes.Count > 1)
@@ -428,15 +426,47 @@ namespace RDBMS.QueryManager
 				possibleRecords = subQueryHandler.SelectRecordsFromTable(tableName, null);
 			}
 
+
+			//Getting the order by clause
+			List<Record> orderedList = new List<Record>(possibleRecords.Values);
+			if (topNode.ChildNodes[8].ChildNodes.Count > 1)
+			{
+				ParseTreeNode orderByNode = topNode.ChildNodes[8].ChildNodes[2];
+				String orderByColName = orderByNode.ChildNodes[0]
+					.ChildNodes[0].ChildNodes[0].Token.ValueString;
+				
+				List<String> orderByList = new List<string>(1);
+				orderByList.Add(orderByColName);
+				int toSortIndex = subQueryHandler.GetColumnIndicesFromName(tableName, orderByList)[0];
+				
+				String orderByType = "asc";
+				if (orderByNode.ChildNodes[0].ChildNodes[1].ChildNodes.Count > 0)
+				{
+					orderByType = orderByNode.ChildNodes[0].ChildNodes[1]
+						.ChildNodes[0].Token.ValueString;
+				}
+
+				orderedList.Sort(new RecordComparer(toSortIndex));
+				if (orderByType == "desc")
+					orderedList.Reverse();
+			}
+
+
+			//Displaying the heading of selected records
+			List<String> sortedSelectedCols = subQueryHandler.SortColumnsInOrder(tableName, selectedColumns);
+			foreach (String colName in sortedSelectedCols)
+			{
+				_messenger.Message(colName + "|");
+			}
+
+
 			//Dispaly the records in proper format
-			foreach (Record record in possibleRecords.Values)
+			foreach (Record record in orderedList)
 			{
 				List<String> fields = record.Fields;
 				String recAsString = "";
 				foreach (int index in selectedColumns)
-				{
 					recAsString += (fields[index] + " | ");
-				}
 				_messenger.Message(recAsString);
 			}
 		}

@@ -11,31 +11,12 @@ namespace RDBMS
 		private static void Main(string[] args)
 		{
 			var qh = new QueryHandler();
-
-			/*String str = "create database sample_data";
+			String str = "SELECT col_1 OF t1, col_2 OF t2 FROM t1 OF table_1, t2 OF table_2 " +
+						"WHERE ((col_3 OF t1 = 3) AND (col_4 OF t1 = val_4 OF t2))";
 			qh.SetQuery(str);
+			//do the work here
 
-			str = "use sample_data";
-			qh.SetQuery(str);
-
-			str = "create table table1(" +
-				"col1 char (100)," +
-				"col2 int (5)" +
-				")";
-			qh.SetQuery(str);*/
-
-			String str = "create index name_1 on table_1";
-			qh.SetQuery(str);
-/*
-			str = "insert into table1 (col1, col2) values ('first', 22) ";
-			qh.SetQuery(str);
-
-			str = "SELECT col2 FROM table1 " +
-						"WHERE " +
-						"COL1 = 'first' ";
-			qh.SetQuery(str);*/
-
-			//InitTests();
+			InitTests();
 			Console.ReadKey();
 		}
 
@@ -44,7 +25,6 @@ namespace RDBMS
 		 * Tests fail if some error is there in 
 		 * the implementation
 		 */
-
 		private static void InitTests()
 		{
 			new Logger().CleanUp();

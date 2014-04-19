@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using RDBMS.DataStructure;
+using RDBMS.Util;
 
 namespace RDBMS.FileManager
 {
@@ -12,7 +14,6 @@ namespace RDBMS.FileManager
 	 */
 
 	//TODO implement show databases also
-	//TODO drop index also
 	//todo implement primary key
 	internal class SubQueryHandler
 	{
@@ -276,6 +277,22 @@ namespace RDBMS.FileManager
 
 			return records;
 		}
+
+		#endregion
+
+		#region Other Methods
+
+		public List<String> ShowDatabases()
+		{
+			String path = GetFilePath.Root;
+			DirectoryInfo dirInfo = new DirectoryInfo(path);
+			DirectoryInfo[] subdirInfo = dirInfo.GetDirectories();
+
+			List<String> subdirNames = new List<string>();
+			foreach (DirectoryInfo subdir in subdirInfo)
+				subdirNames.Add(subdir.Name);
+			return subdirNames;
+		} 
 
 		#endregion
 

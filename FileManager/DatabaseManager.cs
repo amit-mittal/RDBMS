@@ -10,7 +10,6 @@ namespace RDBMS.FileManager
 	/**
 	 * Handles queries related to the database
 	 */
-
 	internal class DatabaseManager
 	{
 		public Database db;
@@ -20,7 +19,6 @@ namespace RDBMS.FileManager
 		 * Not initializing db object as that will
 		 * be done after he has used "use database" query
 		 */
-
 		public void CreateDatabase(String dbName)
 		{
 			String path = GetFilePath.Database(dbName);
@@ -31,10 +29,7 @@ namespace RDBMS.FileManager
 			}
 			else
 			{
-				//create folder and conf file
-				//if needed add entry to conf of database
 				storageManager.CreateFolder(path);
-				//storageManager.CreateFile(conf, Converter.CharToBytes(new char[Constants.MaxStringSize]).Length, false);
 			}
 		}
 
@@ -49,10 +44,6 @@ namespace RDBMS.FileManager
 			else
 			{
 				db = new Database(dbName);
-
-				//right now not using conf file
-				/*byte[] tableBytes = storageManager.GetCompleteFile(File.OpenRead(conf));
-				List<String> tables = Converter.BytesToStringList(tableBytes);*/
 			}
 		}
 

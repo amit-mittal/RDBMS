@@ -9,6 +9,9 @@ namespace RDBMS.QueryManager
 {
 	//TODO CHANGE GRAMMAR ACCORDING TO OURS
 	//TODO SEGREGATE THE METHODS PROPERLY
+	//TODO implement order by also
+	//todo can implement distinct also
+	//TODO have added () support , check if working correct
 	internal class QueryHandler
 	{
 		private DisplayMessage _messenger = new DisplayMessage();
@@ -41,7 +44,6 @@ namespace RDBMS.QueryManager
 					_messenger.Message("====================");
 
 					//TODO testing pending
-					//todo add index left
 					if (root.ChildNodes[0].Term.ToString() == "createDatabaseStmt")
 					{
 						CreateDatabase();
@@ -57,6 +59,10 @@ namespace RDBMS.QueryManager
 					else if (root.ChildNodes[0].Term.ToString() == "showTablesStmt")
 					{
 						ShowTables();
+					}
+					else if (root.ChildNodes[0].Term.ToString() == "showDatabasesStmt")
+					{
+						ShowDatabases();
 					}
 					else if (root.ChildNodes[0].Term.ToString() == "describeTableStmt")
 					{
@@ -85,6 +91,10 @@ namespace RDBMS.QueryManager
 					else if (root.ChildNodes[0].Term.ToString() == "selectStmt")
 					{
 						SelectRecordsFromTable();
+					}
+					else if (root.ChildNodes[0].Term.ToString() == "selectJoinStmt")
+					{
+						SelectRecordsFromMultipleTable();
 					}
 					else if (root.ChildNodes[0].Term.ToString() == "createIndexStmt")
 					{
@@ -164,6 +174,18 @@ namespace RDBMS.QueryManager
 			_messenger.Message("===TABLES===");
 			foreach (string tableName in tableNames)
 				_messenger.Message(tableName);
+		}
+
+		/**
+		 * Query:
+		 * SHOW TABLES
+		 */
+		private void ShowDatabases()
+		{
+			List<String> dbNames = subQueryHandler.ShowDatabases();
+			_messenger.Message("===DATABASES===");
+			foreach (string dbName in dbNames)
+				_messenger.Message(dbName);
 		}
 
 		/**
@@ -365,11 +387,10 @@ namespace RDBMS.QueryManager
 		 * Query:
 		 * SELECT [*] [col_1, col_2]
 		 * FROM table_1 
-		 * [WHERE] col_3 = val_3 AND col_4 = val_4
+		 * [WHERE] ((col_3 = val_3) AND (col_4 = val_4))
 		 */
 		private void SelectRecordsFromTable()
 		{
-			//todo implement joins
 			ParseTreeNode topNode = root.ChildNodes[0];
 
 			//Selecting the table
@@ -387,7 +408,6 @@ namespace RDBMS.QueryManager
 			else
 			{
 				List<String> colNames = new List<string>();
-				Console.WriteLine(colList.ChildNodes.Count);
 				foreach (var colNameNode in colList.ChildNodes)
 				{
 					String colName = colNameNode.ChildNodes[0].ChildNodes[0].ChildNodes[0].Token.ValueString;
@@ -395,8 +415,6 @@ namespace RDBMS.QueryManager
 				}
 				selectedColumns = subQueryHandler.GetColumnIndicesFromName(tableName, colNames);
 			}
-
-			//todo Selecting the tables - IF DOING JOINS
 
 			//Selecting the records
 			Dictionary<int, Record> possibleRecords;
@@ -421,6 +439,54 @@ namespace RDBMS.QueryManager
 				}
 				_messenger.Message(recAsString);
 			}
+		}
+
+		/**
+		 * Query:
+		 * SELECT col_1 OF t1, col_2 OF t2 
+		 * FROM t1 OF table_1, t2 OF table_2 
+		 * WHERE (col_3 OF t1 = 3) 
+		 * HAVING ((col_4 OF t1) = (val_4 OF t2))
+		 */
+		private void SelectRecordsFromMultipleTable()
+		{
+			ParseTreeNode topNode = root.ChildNodes[0];
+
+			//Selecting the tables
+			ParseTreeNode tableListNode = topNode
+				.ChildNodes[3].ChildNodes[1];
+			Dictionary<String, String> idTableMap = new Dictionary<string, string>();
+			foreach (var tableNode in tableListNode.ChildNodes)
+			{
+				String tableName = tableNode.ChildNodes[2].Token.ValueString;
+				String tableId = tableNode.ChildNodes[2].Token.ValueString;
+				
+				idTableMap.Add(tableId, tableName);
+			}
+
+			//Selecting the columns
+			ParseTreeNode colList = topNode.ChildNodes[2].ChildNodes[0];
+			Dictionary<String, String> idColumnMap = new Dictionary<string, string>();
+			foreach (var colNode in colList.ChildNodes)
+			{
+				String colName = colNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
+				String colId = colNode.ChildNodes[2].ChildNodes[0].Token.ValueString;
+
+				idColumnMap.Add(colId, colName);
+			}
+
+			//Selecting the records
+			Dictionary<int, Record> possibleRecords;
+			if (topNode.ChildNodes[4].ChildNodes.Count > 1)
+			{
+				ParseTreeNode binExpr = topNode.ChildNodes[4].ChildNodes[1].ChildNodes[0];
+				possibleRecords = SolveWhereClause(idTableMap, binExpr);
+			}
+			else
+			{
+				
+			}
+
 		}
 
 		/**
@@ -568,7 +634,40 @@ namespace RDBMS.QueryManager
 			}
 
 			return finalResult;
-		} 
+		}
+
+		/**
+		 * Evaluates WHERE for binary expressions
+		 * Binary Expression should be of form
+		 *		colName OF instance
+		 *		conditionType
+		 *		Value
+		 *	Binary Expression should be of form
+		 *		colName OF instance
+		 *		conditionType
+		 *		colName OF instance
+		 */
+		private Dictionary<int, Record> SolveWhereClause(Dictionary<string, string> idTableMap, ParseTreeNode binExpr)
+		{
+			Dictionary<int, Record> finalResult = new Dictionary<int, Record>();
+			String opValue = binExpr.ChildNodes[1].ChildNodes[0].Token.ValueString;
+
+			if (opValue == "and")
+			{
+				
+			}
+			else if (opValue == "or")
+			{
+				
+			}
+			else
+			{
+				//Solving the Base Expression
+				
+			}
+
+			return finalResult;
+		}
 		
 		#endregion
 

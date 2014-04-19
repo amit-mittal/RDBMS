@@ -34,6 +34,7 @@ namespace RDBMS.QueryManager
 			var TABLE = ToTerm("TABLE");
 			var TABLES = ToTerm("TABLES");
 			var DATABASE = ToTerm("DATABASE");
+			var DATABASES = ToTerm("DATABASES");
 			var ALTER = ToTerm("ALTER");
 			var ADD = ToTerm("ADD");
 			var COLUMN = ToTerm("COLUMN");
@@ -56,6 +57,8 @@ namespace RDBMS.QueryManager
 			var JOIN = ToTerm("JOIN");
 			var BY = ToTerm("BY");
 
+			var OF = ToTerm("OF");
+
 			#endregion
 
 			#region NON TERMINALS
@@ -65,7 +68,18 @@ namespace RDBMS.QueryManager
 			var dropDatabaseStmt = new NonTerminal("dropDatabaseStmt");
 			var useDatabaseStmt = new NonTerminal("useDatabaseStmt");
 			var showTablesStmt = new NonTerminal("showTablesStmt");
+			var showDatabasesStmt = new NonTerminal("showDatabasesStmt");
 			var describeTableStmt = new NonTerminal("describeTableStmt");
+			var selectJoinStmt = new NonTerminal("selectJoinStmt");
+			var columnJoinItemList = new NonTerminal("columnJoinItemList");
+			var columnJoinItem = new NonTerminal("columnJoinItem");
+			var fromJoinClauseOpt = new NonTerminal("fromJoinClauseOpt");
+			var whereJoinClauseOpt = new NonTerminal("whereJoinClauseOpt");
+			var idJoinlist = new NonTerminal("idJoinlist");
+			var expressionJoin = new NonTerminal("expressionJoin");
+			var binJoinExpr = new NonTerminal("binJoinExpr");
+			var termJoin = new NonTerminal("termJoin");
+			var havingJoinClauseOpt = new NonTerminal("havingJoinClauseOpt");
 
 			var Id = new NonTerminal("Id");
 			var stmt = new NonTerminal("stmt");
@@ -152,6 +166,7 @@ namespace RDBMS.QueryManager
 						| selectStmt | insertStmt | updateStmt | deleteStmt
 						| createDatabaseStmt | dropDatabaseStmt | useDatabaseStmt
 						| showTablesStmt | describeTableStmt
+						| selectJoinStmt | showDatabasesStmt
 						| "GO";
 			//Create database
 			createDatabaseStmt.Rule = CREATE + DATABASE + Id;
@@ -165,8 +180,25 @@ namespace RDBMS.QueryManager
 			//Show tables
 			showTablesStmt.Rule = SHOW + TABLES;
 
+			//Show databases
+			showDatabasesStmt.Rule = SHOW + DATABASES;
+
 			//Describe table
 			describeTableStmt.Rule = DESCRIBE + Id;
+
+			//Select join stmt
+			selectJoinStmt.Rule = SELECT + selRestrOpt + columnJoinItemList + fromJoinClauseOpt + whereJoinClauseOpt + 
+				havingJoinClauseOpt;
+			selRestrOpt.Rule = Empty | "ALL" | "DISTINCT";
+			columnJoinItemList.Rule = MakePlusRule(columnJoinItemList, comma, columnJoinItem);
+			columnJoinItem.Rule = Id + OF + Id;
+			fromJoinClauseOpt.Rule = Empty | FROM + idJoinlist;
+			idJoinlist.Rule = MakePlusRule(idJoinlist, comma, columnJoinItem);
+			whereJoinClauseOpt.Rule = Empty | "WHERE" + expressionJoin;
+			havingJoinClauseOpt.Rule = Empty | "HAVING" + expressionJoin;
+			expressionJoin.Rule = termJoin | binJoinExpr;
+			termJoin.Rule = columnJoinItem | string_literal | number;
+			binJoinExpr.Rule = "(" + expressionJoin + binOp + expressionJoin + ")";
 
 			//Create table
 			createTableStmt.Rule = CREATE + TABLE + Id + "(" + fieldDefList + ")"/* + constraintListOpt*/;
@@ -249,7 +281,7 @@ namespace RDBMS.QueryManager
 			parSelectStmt.Rule = "(" + selectStmt + ")";
 			unExpr.Rule = unOp + term;
 			unOp.Rule = NOT | "+" | "-" | "~";
-			binExpr.Rule = expression + binOp + expression;
+			binExpr.Rule = "(" + expression + binOp + expression + ")";
 			binOp.Rule = ToTerm("+") | "-" | "*" | "/" | "%" //arithmetic
 						| "&" | "|" | "^" //bit
 						| "=" | ">" | "<" | ">=" | "<=" | "<>" | "!=" | "!<" | "!>"

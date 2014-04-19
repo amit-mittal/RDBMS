@@ -17,7 +17,6 @@ namespace RDBMS.DataStructure
 		public Column Attribute;
 		public ConditionType Sign;
 		public String Value;
-		//TODO if we want to add an attribute then make another condition type object
 
 		public Condition(Column attribute, ConditionType sign, String value)
 		{

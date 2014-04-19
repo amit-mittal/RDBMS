@@ -9,7 +9,7 @@ namespace RDBMS.Util
 
 	internal static class GetFilePath
 	{
-		private const String Root = "E:\\RDBMS\\";
+		public const String Root = "E:\\RDBMS\\";
 
 		public static string Database(string dbName)
 		{

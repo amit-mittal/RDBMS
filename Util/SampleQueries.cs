@@ -53,5 +53,9 @@ namespace RDBMS.Util
 		public static String CreateIndex = "CREATE INDEX col_1 ON table_1";
 
 		public static String DropIndex = "DROP INDEX column_1 ON table_1";
+
+		public static String CreatePrimaryKey = "CREATE PRIMARY KEY col_1 ON table_1";
+
+		public static String DropPrimaryKey = "DROP PRIMARY KEY ON table_1";
 	}
 }

@@ -8,6 +8,7 @@ using RDBMS.Util;
 
 namespace RDBMS.QueryManager
 {
+	//TODO if second thing is a column name - TEST this
 	internal class QueryHandler
 	{
 		private DisplayMessage _messenger = new DisplayMessage();
@@ -317,7 +318,7 @@ namespace RDBMS.QueryManager
 		 * Query:
 		 * UPDATE table_name 
 		 * SET col_1 = val_1, col_2 = val_2
-		 * [WHERE] col_3 = val_3 AND col_4 = val_4
+		 * [WHERE] ((col_3 = val_3) AND (col_4 = col_5))
 		 */
 		private void UpdateRecordOfTable()
 		{
@@ -361,7 +362,7 @@ namespace RDBMS.QueryManager
 		/**
 		 * Query:
 		 * DELETE FROM table_name 
-		 * [WHERE] col_3 = val_3 AND col_4 = val_4
+		 * [WHERE] ((col_3 = val_3) AND (col_4 = col_5))
 		 */
 		private void DeleteRecordsFromTable()
 		{
@@ -390,7 +391,7 @@ namespace RDBMS.QueryManager
 		 * Query:
 		 * SELECT [*] [col_1, col_2]
 		 * FROM table_1 
-		 * [WHERE] ((col_3 = val_3) AND (col_4 = val_4))
+		 * [WHERE] ((col_3 = val_3) AND (col_4 = col_5))
 		 * [ORDER BY] col_name [ASC|DESC]
 		 */
 		private void SelectRecordsFromTable()
@@ -549,7 +550,7 @@ namespace RDBMS.QueryManager
 
 		/**
 		 * Query:
-		 * ADD PRIMARY KEY column_name ON table_name
+		 * CREATE PRIMARY KEY column_name ON table_name
 		 */
 		private void CreatePrimaryKey()
 		{
@@ -637,10 +638,23 @@ namespace RDBMS.QueryManager
 			{
 				//Solving the Base Expression
 				String v1 = binExpr.ChildNodes[0].ChildNodes[0].Token.ValueString;
-				String v2 = binExpr.ChildNodes[2].Token.ValueString;
 
-				Condition condition = subQueryHandler.GetCondition(tableName, v1, opValue, v2);
-				finalResult = subQueryHandler.SelectRecordsFromTable(tableName, condition);
+				if (binExpr.ChildNodes[2].ChildNodes.Count == 0)
+				{
+					String v2 = binExpr.ChildNodes[2].Token.ValueString;
+					Condition condition = subQueryHandler.GetCondition(tableName, v1, opValue, v2);
+					finalResult = subQueryHandler.SelectRecordsFromTable(tableName, condition);
+				}
+				else
+				{
+					String v2 = binExpr.ChildNodes[0].ChildNodes[0].Token.ValueString;
+					Dictionary<int, Record> allRecs = subQueryHandler.SelectRecordsFromTable(tableName, null);
+					foreach (var pair in allRecs)
+					{
+						if (subQueryHandler.IsRecordSatisfyingCondition(tableName, pair.Value, v1, v2, opValue))
+							finalResult.Add(pair.Key, pair.Value);
+					}
+				}
 			}
 
 			return finalResult;

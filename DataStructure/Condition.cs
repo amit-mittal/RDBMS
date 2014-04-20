@@ -60,7 +60,6 @@ namespace RDBMS.DataStructure
 		 * true - if condition is satisfied
 		 * else false
 		 */
-
 		public bool CompareIntegers(int v1)
 		{
 			int v2 = int.Parse(Value);
@@ -109,7 +108,6 @@ namespace RDBMS.DataStructure
 		 * true - if condition is satisfied
 		 * else false
 		 */
-
 		public bool CompareDoubles(double v1)
 		{
 			double v2 = double.Parse(Value);
@@ -158,7 +156,6 @@ namespace RDBMS.DataStructure
 		 * true - if condition is satisfied
 		 * else false
 		 */
-
 		public bool CompareStrings(String s1)
 		{
 			String s2 = Value;

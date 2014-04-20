@@ -11,8 +11,6 @@ namespace RDBMS.FileManager
 	 * coming from the top layer and returns
 	 * data accordingly or throws exception
 	 */
-
-	//TODO implement primary key - change insert method, update
 	internal class SubQueryHandler
 	{
 		//TODO make sure consisitency in null and empty string in record object
@@ -514,6 +512,72 @@ namespace RDBMS.FileManager
 			foreach (var i in columnIndices)
 				newList.Add(tableManager.table.GetColumn(i).Name);
 			return newList;
+		}
+
+		public bool IsRecordSatisfyingCondition(String tableName, Record record, 
+			String col1Name, String col2Name, String op)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
+
+			Column col1 = tableManager.table.GetColumnByName(col1Name);
+			Column col2 = tableManager.table.GetColumnByName(col2Name);
+			int col1Index = tableManager.table.GetColumnIndex(col1);
+			int col2Index = tableManager.table.GetColumnIndex(col2);
+			if (col1Index == -1 || col2Index == -1)
+				throw new Exception("No such column exists");
+
+			Condition.ConditionType conditionType;
+			if (op == "=")
+				conditionType = Condition.ConditionType.Equal;
+			else if (op == "<")
+				conditionType = Condition.ConditionType.Less;
+			else if (op == ">")
+				conditionType = Condition.ConditionType.Greater;
+			else if (op == "<=")
+				conditionType = Condition.ConditionType.LessEqual;
+			else if (op == ">=")
+				conditionType = Condition.ConditionType.GreaterEqual;
+			else
+				throw new Exception("Operation " + op + " not supported");
+
+			if(col1.Type != col2.Type)
+				throw new Exception("Both columns do not have same data type");
+
+			if (col1.Type == Column.DataType.Int)
+			{
+				int valueInt;
+				if (int.TryParse(record.Fields[col2Index], out valueInt))
+				{
+					Condition cond = new Condition(col1, conditionType, record.Fields[col2Index]);
+					return cond.CompareIntegers(int.Parse(record.Fields[col1Index]));
+				}
+			}
+			else if (col1.Type == Column.DataType.Double)
+			{
+				double valueDouble;
+				if (double.TryParse(record.Fields[col2Index], out valueDouble))
+				{
+					Condition cond = new Condition(col1, conditionType, record.Fields[col2Index]);
+					return cond.CompareDoubles(double.Parse(record.Fields[col1Index]));
+				}
+			}
+			else if (col1.Type == Column.DataType.Char)
+			{
+				if (conditionType != Condition.ConditionType.Equal)
+					throw new Exception("These type of columns only support equality conditions");
+
+				if (record.Fields[col2Index] != null)
+				{
+					Condition cond = new Condition(col1, conditionType, record.Fields[col2Index]);
+					return cond.CompareStrings(record.Fields[col1Index]);
+				}
+			}
+			else
+			{
+				throw new Exception("Condition value is not valid");
+			}
+			return false;
 		}
 
 		#endregion

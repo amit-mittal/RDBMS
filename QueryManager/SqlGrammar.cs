@@ -190,7 +190,7 @@ namespace RDBMS.QueryManager
 			describeTableStmt.Rule = DESCRIBE + Id;
 
 			//Add primary key
-			addPrimaryKeyStmt.Rule = ADD + PRIMARY + KEY + Id + ON + Id;
+			addPrimaryKeyStmt.Rule = CREATE + PRIMARY + KEY + Id + ON + Id;
 
 			//Drop primary key
 			dropPrimaryKeyStmt.Rule = DROP + PRIMARY + KEY + ON + Id;

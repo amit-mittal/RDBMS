@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using RDBMS.DataStructure;
-using RDBMS.QueryManager;
+using System.Windows.Forms;
 using RDBMS.Testing;
 using RDBMS.Util;
 
@@ -11,14 +9,17 @@ namespace RDBMS
 	{
 		private static void Main(string[] args)
 		{
-			/*var qh = new QueryHandler();
-			String str = "SELECT * FROM table_1 " +
-						"WHERE ((col_2 = 'hello world') AND (col_1 = 13)) " +
-						"ORDER BY col_1 asc";
-			qh.SetQuery(str);
+			//var qh = new QueryHandler();
+			//String str = "SELECT col_1 OF t1, col_2 OF t2 FROM t1 OF table_1, t2 OF table_2 " +
+						//"WHERE col_3 OF t1 = 3 AND col_4 OF t1 = val_4 OF t2";
+			//qh.SetQuery(str);
 			//do the work here
-			*/
+
+			SqlForm form = new SqlForm();
+			Application.EnableVisualStyles();
+
 			InitTests();
+			Application.Run(form);
 			Console.ReadKey();
 		}
 

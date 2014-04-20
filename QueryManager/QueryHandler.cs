@@ -11,13 +11,19 @@ namespace RDBMS.QueryManager
 	//TODO if second thing is a column name - TEST this
 	internal class QueryHandler
 	{
-		private DisplayMessage _messenger = new DisplayMessage();
+		private DisplayMessage _messenger;
 		public SubQueryHandler subQueryHandler;
 		public String query;
 		public ParseTreeNode root;
 
 		public QueryHandler()
 		{
+			subQueryHandler = new SubQueryHandler();
+		}
+
+		public QueryHandler(SqlForm form)
+		{
+			_messenger = new DisplayMessage(form);
 			subQueryHandler = new SubQueryHandler();
 		}
 

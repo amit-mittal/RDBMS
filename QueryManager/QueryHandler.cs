@@ -927,7 +927,6 @@ namespace RDBMS.QueryManager
 							temp2.Add(tableName2, pair2[tableName2]);
 					}
 
-					//check if temp1 = temp2
 					if (CheckIfDictIdentical(temp1, temp2))
 					{
 						dict.Add(c, temp1);
@@ -950,25 +949,46 @@ namespace RDBMS.QueryManager
 			Dictionary<int, Dictionary<string, Record>> t2)
 		{
 			Dictionary<int, Dictionary<string, Record>> dict = new Dictionary<int, Dictionary<string, Record>>();
-
-			Dictionary<int, Dictionary<string, Record>> t1_2 = new Dictionary<int, Dictionary<string, Record>>();
-			foreach (var tableName in t2[0].Keys)
+			if (t2.Count > 0)
 			{
-				Dictionary<int, Record> temp = subQueryHandler.SelectRecordsFromTable(tableName, null);
-				t1_2 = CrossJoin(t1_2, temp, tableName);
+				foreach (var tableName in t2[0].Keys)
+				{
+					if (t1.Count > 0 && t1[0].ContainsKey(tableName))
+						continue;
+					Dictionary<int, Record> temp = subQueryHandler.SelectRecordsFromTable(tableName, null);
+					t1 = CrossJoin(t1, temp, tableName);
+				}
+				for (int i = 0; i < t1.Count; i++)
+					dict.Add(i, t1[i]);
 			}
-			for (int i = 0; i < t1_2.Count; i++)
-				dict.Add(i, t1_2[i]);
 
-			int c = dict.Count;
-			Dictionary<int, Dictionary<string, Record>> t2_2 = new Dictionary<int, Dictionary<string, Record>>();
-			foreach (var tableName in t1[0].Keys)
+			if (t1.Count > 0)
 			{
-				Dictionary<int, Record> temp = subQueryHandler.SelectRecordsFromTable(tableName, null);
-				t2_2 = CrossJoin(t2_2, temp, tableName);
+				int c = dict.Count;
+				foreach (var tableName in t1[0].Keys)
+				{
+					if (t2.Count > 0 && t2[0].ContainsKey(tableName))
+						continue;
+					Dictionary<int, Record> temp = subQueryHandler.SelectRecordsFromTable(tableName, null);
+					t2 = CrossJoin(t2, temp, tableName);
+				}
+				for (int i = 0; i < t2.Count; i++)
+				{
+					bool found = false;
+					foreach (var pair in dict.Values)
+					{
+						if (CheckIfDictIdentical(pair, t2[i]))
+						{
+							found = true;
+							break;
+						}
+					}
+					if (found)
+						continue;
+					dict.Add(c, t2[i]);
+					++c;
+				}
 			}
-			for (int i = 0; i < t2_2.Count; i++)
-				dict.Add(i+c, t2_2[i]);
 
 			return dict;
 		}
@@ -982,7 +1002,7 @@ namespace RDBMS.QueryManager
 			{
 				if (t2.ContainsKey(pair.Key))
 				{
-					if (!pair.Value.Equals(t2[pair.Key]))
+					if (pair.Value.CompareTo(t2[pair.Key]) != 0)
 						return false;
 				}
 				else

@@ -3,7 +3,7 @@ using System.Windows.Forms;
 
 namespace RDBMS.Util
 {
-	class DisplayMessage
+	internal class DisplayMessage
 	{
 		public SqlForm form;
 
@@ -24,7 +24,20 @@ namespace RDBMS.Util
 			}
 			else
 			{
-				form.OutputBox.Text = msg;
+				form.OutputBox.AppendText(msg);
+				form.OutputBox.AppendText(Environment.NewLine);
+			}
+		}
+
+		public void Error(String msg)
+		{
+			if (form == null)
+			{
+				Console.WriteLine(msg);
+			}
+			else
+			{
+				form.ErrorBox.Text = msg;
 			}
 		}
 	}

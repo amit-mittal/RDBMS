@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using RDBMS.QueryManager;
 using RDBMS.Testing;
 using RDBMS.Util;
 
@@ -9,16 +10,14 @@ namespace RDBMS
 	{
 		private static void Main(string[] args)
 		{
-			//var qh = new QueryHandler();
-			//String str = "SELECT col_1 OF t1, col_2 OF t2 FROM t1 OF table_1, t2 OF table_2 " +
-						//"WHERE col_3 OF t1 = 3 AND col_4 OF t1 = val_4 OF t2";
-			//qh.SetQuery(str);
-			//do the work here
+			
+			//doing the testing
+			InitTests();
 
+			//do the work here
 			SqlForm form = new SqlForm();
 			Application.EnableVisualStyles();
 
-			InitTests();
 			Application.Run(form);
 			Console.ReadKey();
 		}

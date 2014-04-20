@@ -18,6 +18,7 @@ namespace RDBMS.QueryManager
 
 		public QueryHandler()
 		{
+			_messenger = new DisplayMessage();
 			subQueryHandler = new SubQueryHandler();
 		}
 
@@ -116,17 +117,17 @@ namespace RDBMS.QueryManager
 					}
 					else
 					{
-						_messenger.Message("Some error in alloting query");
+						_messenger.Error("Some error in alloting query");
 					}
 				}
 				else //invalid query
 				{
-					_messenger.Message("Invalid Query");
+					_messenger.Error("Invalid Query");
 				}
 			}
 			catch (Exception e)
 			{
-				_messenger.Message(e.Message);
+				_messenger.Error(e.Message);
 			}
 		}
 
@@ -453,6 +454,7 @@ namespace RDBMS.QueryManager
 				List<String> orderByList = new List<string>(1);
 				orderByList.Add(orderByColName);
 				int toSortIndex = subQueryHandler.GetColumnIndicesFromName(tableName, orderByList)[0];
+				Column.DataType toSortType = subQueryHandler.DescribeTable(tableName).Columns[toSortIndex].Type;
 				
 				String orderByType = "asc";
 				if (orderByNode.ChildNodes[0].ChildNodes[1].ChildNodes.Count > 0)
@@ -461,7 +463,7 @@ namespace RDBMS.QueryManager
 						.ChildNodes[0].Token.ValueString;
 				}
 
-				orderedList.Sort(new RecordComparer(toSortIndex));
+				orderedList.Sort(new RecordComparer(toSortIndex, toSortType));
 				if (orderByType == "desc")
 					orderedList.Reverse();
 			}
@@ -490,27 +492,14 @@ namespace RDBMS.QueryManager
 		 * Query:
 		 * SELECT col_1 OF t1, col_2 OF t2 
 		 * FROM t1 OF table_1, t2 OF table_2 
-		 * WHERE (col_3 OF t1 = 3) 
-		 * HAVING ((col_4 OF t1) = (val_4 OF t2))
+		 * [WHERE] (col_3 OF t1 = col_4 of t2) 
 		 */
 		private void SelectRecordsFromMultipleTable()
 		{
 			ParseTreeNode topNode = root.ChildNodes[0];
 
-			//Selecting the tables
-			ParseTreeNode tableListNode = topNode
-				.ChildNodes[3].ChildNodes[1];
-			Dictionary<String, String> idTableMap = new Dictionary<string, string>();
-			foreach (var tableNode in tableListNode.ChildNodes)
-			{
-				String tableName = tableNode.ChildNodes[2].Token.ValueString;
-				String tableId = tableNode.ChildNodes[2].Token.ValueString;
-				
-				idTableMap.Add(tableId, tableName);
-			}
-
 			//Selecting the columns
-			ParseTreeNode colList = topNode.ChildNodes[2].ChildNodes[0];
+			ParseTreeNode colList = topNode.ChildNodes[2];
 			Dictionary<String, String> idColumnMap = new Dictionary<string, string>();
 			foreach (var colNode in colList.ChildNodes)
 			{
@@ -520,18 +509,49 @@ namespace RDBMS.QueryManager
 				idColumnMap.Add(colId, colName);
 			}
 
-			//Selecting the records
-			Dictionary<int, Record> possibleRecords;
+			//Selecting the tables
+			ParseTreeNode tableListNode = topNode.ChildNodes[3].ChildNodes[1];
+			Dictionary<String, String> idTableMap = new Dictionary<string, string>();
+			foreach (var tableNode in tableListNode.ChildNodes)
+			{
+				String tableId = tableNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
+				String tableName = tableNode.ChildNodes[2].ChildNodes[0].Token.ValueString;
+				
+				idTableMap.Add(tableId, tableName);
+			}
+
+
+			//Parsing the where clause
+			Dictionary<int, Dictionary<string, Record>> finalRecords;
 			if (topNode.ChildNodes[4].ChildNodes.Count > 1)
 			{
 				ParseTreeNode binExpr = topNode.ChildNodes[4].ChildNodes[1].ChildNodes[0];
-				possibleRecords = SolveWhereClause(idTableMap, binExpr);
+				finalRecords = SolveWhereClause(idTableMap, binExpr);
 			}
 			else
 			{
-				
+				finalRecords = new Dictionary<int, Dictionary<string, Record>>();
+				foreach (var tableName in idTableMap.Values)
+				{
+					Dictionary<int, Record> temp = subQueryHandler.SelectRecordsFromTable(tableName, null);
+					finalRecords = CrossJoin(finalRecords, temp, tableName);
+				}
 			}
 
+			//TODO select only columns specified not done
+			
+			//Printing the records
+			foreach (var finalRecord in finalRecords)//iterating each row
+			{
+				String rowAsString = "";
+				foreach (var idToRecord in finalRecord.Value)//iterating on each table
+				{
+					rowAsString += (idToRecord.Key + " | ");
+					foreach (string fieldStr in idToRecord.Value.Fields)
+						rowAsString += (fieldStr + " | ");
+				}
+				_messenger.Message(rowAsString);
+			}
 		}
 
 		/**
@@ -619,7 +639,7 @@ namespace RDBMS.QueryManager
 		 * Binary Expression should be of form
 		 *		colName
 		 *		conditionType
-		 *		Value
+		 *		Value/colName
 		 */
 		private Dictionary<int, Record> SolveWhereClause(String tableName, ParseTreeNode binExpr)
 		{
@@ -730,40 +750,247 @@ namespace RDBMS.QueryManager
 			return finalResult;
 		}
 
-		/**
-		 * Evaluates WHERE for binary expressions
-		 * Binary Expression should be of form
-		 *		colName OF instance
-		 *		conditionType
-		 *		Value
-		 *	Binary Expression should be of form
-		 *		colName OF instance
-		 *		conditionType
-		 *		colName OF instance
-		 */
-		private Dictionary<int, Record> SolveWhereClause(Dictionary<string, string> idTableMap, ParseTreeNode binExpr)
+		private Dictionary<int, Dictionary<string, Record>> SolveWhereClause(Dictionary<string, string> idTableMap, 
+			ParseTreeNode binExpr)
 		{
-			Dictionary<int, Record> finalResult = new Dictionary<int, Record>();
+			Dictionary<int, Dictionary<string, Record>> records = new Dictionary<int, Dictionary<string, Record>>();
 			String opValue = binExpr.ChildNodes[1].ChildNodes[0].Token.ValueString;
 
 			if (opValue == "and")
 			{
-				
+				ParseTreeNode leftBinExpr = binExpr.ChildNodes[0].ChildNodes[0];
+				ParseTreeNode rightBinExpr = binExpr.ChildNodes[2].ChildNodes[0];
+				Dictionary<int, Dictionary<string, Record>> left = SolveWhereClause(idTableMap, leftBinExpr);
+				Dictionary<int, Dictionary<string, Record>> right = SolveWhereClause(idTableMap, rightBinExpr);
+
+				records = ANDCrossJoin(left, right);
 			}
 			else if (opValue == "or")
 			{
-				
+				ParseTreeNode leftBinExpr = binExpr.ChildNodes[0].ChildNodes[0];
+				ParseTreeNode rightBinExpr = binExpr.ChildNodes[2].ChildNodes[0];
+				Dictionary<int, Dictionary<string, Record>> left = SolveWhereClause(idTableMap, leftBinExpr);
+				Dictionary<int, Dictionary<string, Record>> right = SolveWhereClause(idTableMap, rightBinExpr);
+
+				records = ORCrossJoin(left, right);
 			}
 			else
 			{
 				//Solving the Base Expression
-				
+				ParseTreeNode left = binExpr.ChildNodes[0].ChildNodes[0].ChildNodes[0];
+				String leftTableInstance = left.ChildNodes[2].ChildNodes[0].Token.ValueString;
+				String leftColName = left.ChildNodes[0].ChildNodes[0].Token.ValueString;
+				if(!idTableMap.ContainsKey(leftTableInstance))
+					throw new Exception("Table instance does not exist");
+				String leftTableName = idTableMap[leftTableInstance];
+
+				if (binExpr.ChildNodes[2].ChildNodes[0].ChildNodes[0].ChildNodes.Count > 1)//both sides column
+				{
+					ParseTreeNode right = binExpr.ChildNodes[2].ChildNodes[0].ChildNodes[0];
+					String rightTableInstance = right.ChildNodes[2].ChildNodes[0].Token.ValueString;
+					String rightColName = right.ChildNodes[0].ChildNodes[0].Token.ValueString;
+					if (!idTableMap.ContainsKey(rightTableInstance))
+						throw new Exception("Table instance does not exist");
+					String rightTableName = idTableMap[rightTableInstance];
+
+					if (rightTableInstance.Equals(leftTableInstance))//same table
+					{
+						int c = 0;
+						Dictionary<int, Record> allRecs = subQueryHandler.SelectRecordsFromTable(leftTableName, null);
+						foreach (var pair in allRecs)
+						{
+							if (subQueryHandler
+								.IsRecordSatisfyingCondition(leftTableName, pair.Value, leftColName, rightColName, opValue))
+							{
+								records.Add(c, GetDictFromRecord(pair.Value, leftTableName));
+								++c;
+							}
+						}
+					}
+					else//different tables
+					{
+						int c = 0;
+						Dictionary<int, Record> allRecs1 = subQueryHandler.SelectRecordsFromTable(leftTableName, null);
+						Dictionary<int, Record> allRecs2 = subQueryHandler.SelectRecordsFromTable(rightTableName, null);
+						foreach (var pair1 in allRecs1)//taking cross join
+						{
+							foreach (var pair2 in allRecs2)
+							{
+								if (subQueryHandler
+								.IsRecordSatisfyingCondition(leftTableName, rightTableName, pair1.Value, pair2.Value, leftColName, rightColName, opValue))
+								{
+									Dictionary<string, Record> dict = new Dictionary<string, Record>(2);
+									dict.Add(leftTableName, pair1.Value);
+									dict.Add(rightTableName, pair2.Value);
+									records.Add(c, dict);
+									++c;
+								}
+							}
+						}
+					}
+				}
+				else//right side is value
+				{
+					String value = binExpr.ChildNodes[2].ChildNodes[0].ChildNodes[0].Token.ValueString;
+					Condition condition = subQueryHandler.GetCondition(leftTableName, leftColName, opValue, value);
+					Dictionary<int, Record> addressRecordMap = subQueryHandler.SelectRecordsFromTable(leftTableName, condition);
+
+					int c = 0;
+					foreach (var record in addressRecordMap.Values)
+					{
+						records.Add(c, GetDictFromRecord(record, leftTableName));
+						++c;
+					}	
+				}
+			}
+			return records;
+		}
+
+		private bool CheckIfPresent(Dictionary<string, Record> smallSet, Dictionary<string, Record> LargeSet)
+		{
+			if(smallSet.Keys.Count > LargeSet.Keys.Count)
+				return false;
+
+			foreach (var table in smallSet.Keys)
+			{
+				if(!LargeSet.ContainsKey(table))
+					return false;
+			}
+			return true;
+		}
+
+		private Dictionary<string, Record> GetDictFromRecord(Record r, String tableName)
+		{
+			Dictionary<string, Record> dict = new Dictionary<string, Record>();
+			dict.Add(tableName, r);
+			return dict;
+		}
+
+		/**
+		 * Simply takes the cross join without any condition
+		 * Tables in the 2 parameters must also be mutually exclusive
+		 */
+		private Dictionary<int, Dictionary<string, Record>> CrossJoin(Dictionary<int, 
+			Dictionary<string, Record>> t1, Dictionary<int, Record> t2, String tableName)
+		{
+			Dictionary<int, Dictionary<string, Record>> finalDict = new Dictionary<int, Dictionary<string, Record>>();
+			
+			int c = 0;
+			if (t1.Count == 0)
+			{
+				foreach (var record in t2)
+				{
+					Dictionary<string, Record> newDict = new Dictionary<string, Record>();
+					newDict.Add(tableName, record.Value);
+					finalDict.Add(c, newDict);
+					++c;
+				}
+				return finalDict;
 			}
 
-			return finalResult;
-		}
-		
-		#endregion
+			foreach (var pair in t1)
+			{
+				foreach (var record in t2)
+				{
+					Dictionary<string, Record> newDict = new Dictionary<string, Record>(pair.Value);
+					newDict.Add(tableName, record.Value);
+					finalDict.Add(c, newDict);
+					++c;
+				}
+			}
 
+			return finalDict;
+		}
+
+		private Dictionary<int, Dictionary<string, Record>> ANDCrossJoin(Dictionary<int, Dictionary<string, Record>> t1,
+			Dictionary<int, Dictionary<string, Record>> t2)
+		{
+			Dictionary<int, Dictionary<string, Record>> dict = new Dictionary<int, Dictionary<string, Record>>();
+
+			int c = 0;
+			foreach (var pair1 in t1.Values)
+			{
+				foreach (var pair2 in t2.Values)
+				{
+					Dictionary<string, Record> temp1 = new Dictionary<string, Record>(pair2);
+					foreach (string tableName1 in pair1.Keys)
+					{
+						if (!temp1.ContainsKey(tableName1))
+							temp1.Add(tableName1, pair1[tableName1]);
+						//BUG: else both should satisify each other's condition
+					}
+
+					Dictionary<string, Record> temp2 = new Dictionary<string, Record>(pair1);
+					foreach (string tableName2 in pair2.Keys)
+					{
+						if (!temp2.ContainsKey(tableName2))
+							temp2.Add(tableName2, pair2[tableName2]);
+					}
+
+					//check if temp1 = temp2
+					if (CheckIfDictIdentical(temp1, temp2))
+					{
+						dict.Add(c, temp1);
+						++c;
+					}
+					else
+					{
+						dict.Add(c, temp1);
+						++c;
+						dict.Add(c, temp2);
+						++c;
+					}
+				}
+			}
+
+			return dict;
+		}
+
+		private Dictionary<int, Dictionary<string, Record>> ORCrossJoin(Dictionary<int, Dictionary<string, Record>> t1,
+			Dictionary<int, Dictionary<string, Record>> t2)
+		{
+			Dictionary<int, Dictionary<string, Record>> dict = new Dictionary<int, Dictionary<string, Record>>();
+
+			Dictionary<int, Dictionary<string, Record>> t1_2 = new Dictionary<int, Dictionary<string, Record>>();
+			foreach (var tableName in t2[0].Keys)
+			{
+				Dictionary<int, Record> temp = subQueryHandler.SelectRecordsFromTable(tableName, null);
+				t1_2 = CrossJoin(t1_2, temp, tableName);
+			}
+			for (int i = 0; i < t1_2.Count; i++)
+				dict.Add(i, t1_2[i]);
+
+			int c = dict.Count;
+			Dictionary<int, Dictionary<string, Record>> t2_2 = new Dictionary<int, Dictionary<string, Record>>();
+			foreach (var tableName in t1[0].Keys)
+			{
+				Dictionary<int, Record> temp = subQueryHandler.SelectRecordsFromTable(tableName, null);
+				t2_2 = CrossJoin(t2_2, temp, tableName);
+			}
+			for (int i = 0; i < t2_2.Count; i++)
+				dict.Add(i+c, t2_2[i]);
+
+			return dict;
+		}
+
+		private bool CheckIfDictIdentical(Dictionary<string, Record> t1, Dictionary<string, Record> t2)
+		{
+			if(t1.Count != t2.Count)
+				return false;
+
+			foreach (KeyValuePair<string, Record> pair in t1)
+			{
+				if (t2.ContainsKey(pair.Key))
+				{
+					if (!pair.Value.Equals(t2[pair.Key]))
+						return false;
+				}
+				else
+					return false;
+			}
+			return true;
+		}
+
+		#endregion
 	}
 }

@@ -141,7 +141,7 @@ namespace RDBMS.FileManager
 			TableManager tableManager = new TableManager(DbManager.db.Name, tableName);
 			Column column = tableManager.table.GetColumnByName(colName);
 
-			if(column.Name == tableManager.table.PrimaryKey.Name)
+			if (tableManager.table.PrimaryKey!=null && column.Name == tableManager.table.PrimaryKey.Name)
 				throw new Exception("Column is primary key so cant drop index");
 
 			//checking if index on it does not exist
@@ -571,6 +571,75 @@ namespace RDBMS.FileManager
 				{
 					Condition cond = new Condition(col1, conditionType, record.Fields[col2Index]);
 					return cond.CompareStrings(record.Fields[col1Index]);
+				}
+			}
+			else
+			{
+				throw new Exception("Condition value is not valid");
+			}
+			return false;
+		}
+
+		public bool IsRecordSatisfyingCondition(String tableName1, String tableName2, 
+			Record record1, Record record2,
+			String col1Name, String col2Name,
+			String op)
+		{
+			CheckIfDatabaseSelected();
+			TableManager tableManager1 = new TableManager(DbManager.db.Name, tableName1);
+			TableManager tableManager2 = new TableManager(DbManager.db.Name, tableName2);
+
+			Column col1 = tableManager1.table.GetColumnByName(col1Name);
+			Column col2 = tableManager2.table.GetColumnByName(col2Name);
+			int col1Index = tableManager1.table.GetColumnIndex(col1);
+			int col2Index = tableManager2.table.GetColumnIndex(col2);
+			if (col1Index == -1 || col2Index == -1)
+				throw new Exception("No such column exists");
+
+			Condition.ConditionType conditionType;
+			if (op == "=")
+				conditionType = Condition.ConditionType.Equal;
+			else if (op == "<")
+				conditionType = Condition.ConditionType.Less;
+			else if (op == ">")
+				conditionType = Condition.ConditionType.Greater;
+			else if (op == "<=")
+				conditionType = Condition.ConditionType.LessEqual;
+			else if (op == ">=")
+				conditionType = Condition.ConditionType.GreaterEqual;
+			else
+				throw new Exception("Operation " + op + " not supported");
+
+			if (col1.Type != col2.Type)
+				throw new Exception("Both columns do not have same data type");
+
+			if (col1.Type == Column.DataType.Int)
+			{
+				int valueInt;
+				if (int.TryParse(record2.Fields[col2Index], out valueInt))
+				{
+					Condition cond = new Condition(col1, conditionType, record2.Fields[col2Index]);
+					return cond.CompareIntegers(int.Parse(record1.Fields[col1Index]));
+				}
+			}
+			else if (col1.Type == Column.DataType.Double)
+			{
+				double valueDouble;
+				if (double.TryParse(record2.Fields[col2Index], out valueDouble))
+				{
+					Condition cond = new Condition(col1, conditionType, record2.Fields[col2Index]);
+					return cond.CompareDoubles(double.Parse(record1.Fields[col1Index]));
+				}
+			}
+			else if (col1.Type == Column.DataType.Char)
+			{
+				if (conditionType != Condition.ConditionType.Equal)
+					throw new Exception("These type of columns only support equality conditions");
+
+				if (record2.Fields[col2Index] != null)
+				{
+					Condition cond = new Condition(col1, conditionType, record2.Fields[col2Index]);
+					return cond.CompareStrings(record1.Fields[col1Index]);
 				}
 			}
 			else

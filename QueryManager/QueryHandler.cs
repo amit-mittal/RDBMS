@@ -840,7 +840,8 @@ namespace RDBMS.QueryManager
 					{
 						records.Add(c, GetDictFromRecord(record, leftTableName));
 						++c;
-					}	
+					}
+					//bug: if other table is there take complete cross join
 				}
 			}
 			return records;
